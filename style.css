@@ -128,29 +128,7 @@ h1, h2, h3 {
   color: #374151;
 }
 
-.change-counter {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  font-size: 14px;
-  color: #6b7280;
-}
-
-.change-badge {
-  display: inline-block;
-  min-width: 28px;
-  text-align: center;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background-color: #e0e7ff;
-  color: #1e40af;
-  font-weight: 600;
-}
-
-.change-badge.exhausted {
-  background-color: #fecaca;
-  color: #991b1b;
-}
+/* 旧ヘッダーバッジは廃止（残り回数は各レーン内 .lane-remaining に移動） */
 
 /* メイン試行: 上 = エージェント / 下 = 3D テーブル */
 .main-trial-layout {
@@ -327,11 +305,27 @@ h1, h2, h3 {
   background: rgba(255,255,255,0.9);
   padding: 2px 8px;
   border-radius: 4px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, calc(50% + 16px));
   pointer-events: none;
+}
+
+/* スライダー直下に表示する残り操作回数 */
+.lane-remaining {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4b5563;
+  background: rgba(255,255,255,0.92);
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  margin-top: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.lane-remaining.exhausted {
+  color: #991b1b;
+  background: rgba(254, 202, 202, 0.95);
+  border-color: #fca5a5;
 }
 
 .recommendation-panel {

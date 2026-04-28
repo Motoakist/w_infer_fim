@@ -33,6 +33,15 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
+  /* レーン内の「残り N 回」表示を更新 */
+  function updateRemainingInLane(root, idx, remaining) {
+    const slot = root.querySelector(`.lane-remaining[data-idx="${idx}"]`);
+    if (!slot) return;
+    const num = slot.querySelector('.remaining-num');
+    if (num) num.textContent = String(remaining);
+    slot.classList.toggle('exhausted', remaining <= 0);
+  }
+
   /* ====== セッション初期化 ====== */
   function initSession({ participantId, condTheta, condTau, condSeq, isPractice }) {
     sessionState.participantId = participantId ?? `local_${Date.now()}`;
@@ -113,15 +122,7 @@
       ? `練習試行 ${trialIndex} / ${totalTrials}`
       : `試行 ${trialIndex} / ${totalTrials}`;
 
-    /* 残り操作回数バッジ */
-    const badges = $$('.change-badge', root);
-    sliderChangeCounts.forEach((c, i) => {
-      const remaining = PARAMS.maxChangesPerSlider - c;
-      if (badges[i]) {
-        badges[i].textContent = String(remaining);
-        badges[i].classList.toggle('exhausted', remaining <= 0);
-      }
-    });
+    /* 残り操作回数の初期表示は table_view.js の render 後に反映するので、ここでは何もしない */
 
     /* 推薦値の数値表示パネル
      * スライダー値 = 美咲（奥）の枚数。両側の数を併記して誤解を防ぐ。
@@ -144,9 +145,15 @@
         issueLabels: ISSUE_LABELS,
         itemImages: ISSUE_LABELS.map((_, i) => `stimuli/item${i + 1}.png`),
         itemMax: PARAMS.X_total,
+        maxChanges: PARAMS.maxChangesPerSlider,
         initialValues: sliderValues.slice(),
         recommendation: recommendation.slice(),
         onChange: (idx, value) => onSliderChange(idx, value, root),
+      });
+      /* 各レーンの残り回数を初期化 */
+      sliderChangeCounts.forEach((c, i) => {
+        const remaining = PARAMS.maxChangesPerSlider - c;
+        updateRemainingInLane(root, i, remaining);
       });
     }
 
@@ -170,13 +177,9 @@
       timeMs: performance.now() - trialState.roundStartTime,
     });
 
-    /* 残り回数バッジ更新 */
+    /* 残り回数表示の更新（各レーン内） */
     const remaining = PARAMS.maxChangesPerSlider - trialState.sliderChangeCounts[idx];
-    const badges = $$('.change-badge', root);
-    if (badges[idx]) {
-      badges[idx].textContent = String(remaining);
-      badges[idx].classList.toggle('exhausted', remaining <= 0);
-    }
+    updateRemainingInLane(root, idx, remaining);
     if (remaining <= 0 && window.TableView) {
       window.TableView.lockSlider(idx);
     }

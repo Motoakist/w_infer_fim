@@ -87,6 +87,7 @@
         <div class="opp-stack" data-idx="${i}"></div>
         <input type="range" class="lane-slider" min="0" max="${max}" step="1"
                value="${opts.initialValues[i] ?? 0}" data-idx="${i}" />
+        <div class="lane-remaining" data-idx="${i}">残り <span class="remaining-num">${opts.maxChanges ?? '-'}</span> 回</div>
         <div class="lane-label">${opts.issueLabels[i]}</div>
         <div class="self-stack" data-idx="${i}"></div>
       `;
