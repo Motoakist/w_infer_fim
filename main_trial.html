@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>本試行 (Block 6) — NeurIPS2026 実験</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="container">
+
+  <!-- ==== 配分操作画面 ==== -->
+  <section id="screen-trial" class="block active">
+    <div class="card">
+      <div class="trial-header">
+        <span class="trial-counter">試行 1 / 6</span>
+        <span class="change-counter">
+          残り操作回数:
+          <span class="change-badge">3</span>
+          <span class="change-badge">3</span>
+          <span class="change-badge">3</span>
+        </span>
+      </div>
+
+      <div class="agent-panel">
+        <div class="agent-name">美咲</div>
+        <div class="agent-stage">
+          <canvas class="agent-canvas" id="agentCanvas-trial" width="720" height="720"></canvas>
+        </div>
+      </div>
+
+      <div class="recommendation-panel">
+        <h3>試していただきたい配分</h3>
+        <ul class="recommendation-list"></ul>
+      </div>
+
+      <div class="table-container"></div>
+
+      <div class="actions">
+        <button class="btn propose-btn">提案する</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== 表情確認画面 ==== -->
+  <section id="screen-view" class="block">
+    <div class="card">
+      <div class="trial-header">
+        <span class="trial-counter">試行 1 / 6</span>
+      </div>
+
+      <!-- agent-panel は使い回さないので、簡易な空欄スロット -->
+      <div class="agent-panel-slot"></div>
+
+      <div class="recommendation-panel">
+        <h3>表情を確認してください</h3>
+        <div class="proposal-display">
+          <strong>提案した配分:</strong>
+          <ul class="proposal-list"></ul>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn next-btn" disabled>次へ</button>
+        <div class="timer-note"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== 完了画面 ==== -->
+  <section id="screen-done" class="block">
+    <div class="card">
+      <h2>本試行が終了しました</h2>
+      <p>続いて、美咲が各論点をどの程度重視していたか答えていただきます。</p>
+      <div class="actions">
+        <button id="btn-go-w" class="btn">次へ進む</button>
+      </div>
+      <div class="debug-panel" id="debug-log"></div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="params.js"></script>
+<script src="expression_logic.js"></script>
+<script src="agent_canvas.js"></script>
+<script src="table_view.js"></script>
+<script src="main_trial.js"></script>
+<script>
+/* スタンドアロン動作用の薄いオーケストレーション
+ * Qualtrics 移行時はこの部分を Qualtrics の Question.JavaScript に書き換える。
+ */
+(function () {
+  /* Live2D は試行画面が可視になってから初期化 */
+  let live2dInitDone = false;
+  function ensureLive2DInit() {
+    if (live2dInitDone || !window.AgentCanvas) return;
+    live2dInitDone = true;
+    window.AgentCanvas.init('agentCanvas-trial').then(ok => {
+      console.log('Live2D init:', ok ? 'OK' : 'FAILED — PNG fallback');
+    });
+  }
+  // ローカル動作時：URL クエリ or ランダム割付で条件決定
+  const params = new URLSearchParams(location.search);
+  const cond = {
+    cond_theta: params.get('theta') || randomAssignCondition().cond_theta,
+    cond_tau:   params.get('tau')   || 'moderate',
+    cond_seq:   params.get('seq')   || 'optimal',
+  };
+
+  MainTrial.initSession({
+    participantId: params.get('pid'),
+    condTheta: cond.cond_theta,
+    condTau:   cond.cond_tau,
+    condSeq:   cond.cond_seq,
+    isPractice: params.get('practice') === '1',
+  });
+
+  const screens = {
+    trial: document.getElementById('screen-trial'),
+    view:  document.getElementById('screen-view'),
+    done:  document.getElementById('screen-done'),
+  };
+  function show(name) {
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+  }
+
+  let currentTrial = 1;
+  const totalTrials = MainTrial.sessionState.isPractice
+    ? PRACTICE_RECOMMENDATIONS.length : PARAMS.T;
+
+  function showTrial() {
+    MainTrial.startTrial(currentTrial);
+    MainTrial.renderTrialScreen(screens.trial);
+    show('trial');
+    requestAnimationFrame(() => ensureLive2DInit());
+  }
+  function showView(expr) {
+    MainTrial.renderViewScreen(screens.view, expr);
+    show('view');
+  }
+
+  screens.trial.querySelector('.propose-btn').addEventListener('click', () => {
+    MainTrial.onPropose(screens.trial, (expr) => showView(expr));
+  });
+
+  screens.view.querySelector('.next-btn').addEventListener('click', () => {
+    MainTrial.endTrial();
+    currentTrial++;
+    if (currentTrial > totalTrials) {
+      try {
+        localStorage.setItem('neurips2026_session', JSON.stringify(MainTrial.sessionState));
+      } catch (e) {}
+      const dbg = document.getElementById('debug-log');
+      if (dbg) dbg.textContent = JSON.stringify(MainTrial.sessionState, null, 2);
+      show('done');
+      return;
+    }
+    showTrial();
+  });
+
+  document.getElementById('btn-go-w').addEventListener('click', () => {
+    location.href = `w_estimation.html?pid=${encodeURIComponent(MainTrial.sessionState.participantId)}`;
+  });
+
+  showTrial();
+})();
+</script>
+</body>
+</html>

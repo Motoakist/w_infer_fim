@@ -1,0 +1,537 @@
+/* NeurIPS2026 実験インタフェース 共通スタイル */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  background-color: #f5f5f5;
+  color: #222;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* ブロック切替 */
+.block {
+  display: none;
+}
+
+.block.active {
+  display: block;
+}
+
+/* カード */
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 32px;
+  margin: 24px 0;
+}
+
+h1, h2, h3 {
+  margin-top: 0;
+  color: #1a1a1a;
+}
+
+/* ボタン */
+.btn {
+  display: inline-block;
+  padding: 12px 28px;
+  border-radius: 8px;
+  border: none;
+  background-color: #2563eb;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #6b7280;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #4b5563;
+}
+
+/* メイン試行画面のレイアウト */
+.trial-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.trial-counter {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.change-counter {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.change-badge {
+  display: inline-block;
+  min-width: 28px;
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background-color: #e0e7ff;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.change-badge.exhausted {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+
+/* メイン試行: 上 = エージェント / 下 = 3D テーブル */
+.main-trial-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.agent-panel {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+  position: relative;
+}
+
+.agent-name {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* Live2D 描画ステージ */
+.agent-stage {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  height: 360px;
+  margin: 0 auto;
+}
+
+.agent-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+/* ===== 3Dテーブル + アイテム =====
+ * SVG 台形をベースに、3 つの垂直レーンを等間隔配置。
+ * 各レーンは固定サイズの flex コンテナ：[奥アイテム] [スライダー] [ラベル] [手前アイテム]
+ * アイテムは可視/不可視で個数を表現するため、レイアウトは値に依存しない。
+ */
+.table-3d {
+  position: relative;
+  width: 720px;
+  max-width: 100%;
+  height: 600px;
+  margin: 32px auto;
+}
+
+.table-3d-svg {
+  position: absolute;
+  top: 20px; left: 0;
+  width: 100%;
+  height: 560px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.table-3d-svg polygon {
+  fill: #f5e6d3;
+  stroke: #8b6f47;
+  stroke-width: 3;
+}
+
+.table-side-label {
+  position: absolute;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+  z-index: 3;
+}
+.table-side-label.opponent { top: 0; }
+.table-side-label.self     { bottom: 0; }
+
+/* レーン（論点1本分の縦の流れ） */
+.lanes {
+  position: absolute;
+  top: 20px; left: 0;
+  width: 100%;
+  height: 560px;
+  z-index: 2;
+}
+
+.lane {
+  position: absolute;
+  top: 0;
+  width: 100px;
+  height: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+/* アイテム置き場（奥側=小さく、手前側=大きく） */
+.opp-stack, .self-stack {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.opp-stack {
+  height: 130px;
+  justify-content: flex-end;
+}
+
+.self-stack {
+  height: 160px;
+  justify-content: flex-start;
+}
+
+.item-img {
+  display: block;
+}
+
+.opp-item-img {
+  width: 26px;
+  height: 26px;
+  margin-bottom: -14px;  /* 重ね描き */
+}
+
+.self-item-img {
+  width: 42px;
+  height: 42px;
+  margin-top: -22px;
+}
+
+.opp-stack .opp-item-img:first-child,
+.self-stack .self-item-img:first-child {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* レーン中央の垂直スライダー */
+.lane-slider {
+  -webkit-appearance: slider-vertical;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 28px;
+  height: 220px;
+  margin: 12px 0;
+  cursor: pointer;
+  accent-color: #2563eb;
+  transition: filter 0.2s ease;
+}
+
+/* 推薦値と一致したときの強調 */
+.lane-slider.matched {
+  accent-color: #16a34a;
+  filter: drop-shadow(0 0 6px rgba(22, 163, 74, 0.55));
+}
+
+.lane-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  background: rgba(255,255,255,0.9);
+  padding: 2px 8px;
+  border-radius: 4px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(50% + 16px));
+  pointer-events: none;
+}
+
+.recommendation-panel {
+  background: #fffbeb;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid #fcd34d;
+}
+
+.recommendation-panel h3 {
+  margin-top: 0;
+  color: #92400e;
+}
+
+.recommendation-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+
+.recommendation-list li {
+  padding: 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #78350f;
+  border-bottom: 1px dashed #fde68a;
+}
+
+.recommendation-list li:last-child {
+  border-bottom: none;
+}
+
+/* スライダー領域 */
+.sliders {
+  margin: 32px 0;
+}
+
+.slider-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px 80px;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  border: 2px solid transparent;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.slider-row.matched {
+  background-color: #ecfdf5;
+  border-color: #34d399;
+}
+
+.slider-row.mismatched {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.slider-label {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.slider-input {
+  width: 100%;
+}
+
+.slider-value {
+  text-align: center;
+  font-size: 16px;
+  color: #374151;
+  font-variant-numeric: tabular-nums;
+}
+
+.slider-remaining {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: right;
+}
+
+/* 中央メッセージ */
+.message-card {
+  background: #eff6ff;
+  border-left: 4px solid #2563eb;
+  padding: 20px 24px;
+  border-radius: 8px;
+  margin: 24px 0;
+  font-size: 18px;
+  text-align: center;
+}
+
+/* 結果表示 */
+.proposal-display {
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 16px 24px;
+  margin: 16px 0;
+}
+
+.proposal-display ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.proposal-display li {
+  padding: 4px 0;
+  font-size: 16px;
+}
+
+/* w推定スライダー（中央目盛り付き） */
+.w-slider-row {
+  margin-bottom: 24px;
+}
+
+.w-slider-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6b7280;
+  padding: 0 4px;
+  margin-bottom: 4px;
+}
+
+.w-slider-input {
+  width: 100%;
+}
+
+.w-slider-current {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2563eb;
+  margin-top: 4px;
+}
+
+/* インフォームドコンセント等 */
+.consent-text {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #fafafa;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.consent-checkbox {
+  margin: 16px 0;
+}
+
+/* 質問項目 */
+.question {
+  margin-bottom: 24px;
+}
+
+.question label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.question input[type="text"],
+.question input[type="number"],
+.question textarea,
+.question select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.question textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-group label {
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* タイマー表示 */
+.timer-note {
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+/* フッターのアクション領域 */
+.actions {
+  text-align: center;
+  margin-top: 24px;
+}
+
+/* 練習バッジ */
+.practice-banner {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 8px 16px;
+  border-radius: 6px;
+  display: inline-block;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+/* デバッグ表示 */
+.debug-panel {
+  background: #1f2937;
+  color: #e5e7eb;
+  font-family: "Menlo", monospace;
+  font-size: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 24px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* レスポンシブ */
+@media (max-width: 720px) {
+  .main-trial-layout {
+    grid-template-columns: 1fr;
+  }
+  .slider-row {
+    grid-template-columns: 80px 1fr 60px;
+  }
+  .slider-row .slider-remaining {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}

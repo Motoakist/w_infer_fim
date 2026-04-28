@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>w 推定 (Block 7) — NeurIPS2026 実験</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="container">
+  <section id="screen-w" class="block active">
+    <div class="card">
+      <h2>美咲は各論点をどの程度重視していると思いますか？</h2>
+      <p>下のスライダーで答えてください。<br>
+        <strong>-2</strong>（嫌う）から <strong>+2</strong>（重視）の5段階です。</p>
+
+      <div class="w-sliders"></div>
+
+      <div class="actions">
+        <button class="btn confirm-w-btn">確定する</button>
+      </div>
+      <div class="debug-panel" id="debug-w-log"></div>
+    </div>
+  </section>
+
+  <section id="screen-debrief" class="block">
+    <div class="card">
+      <h2>ご協力ありがとうございました</h2>
+      <p>これで実験は終了です。<br>
+        Qualtrics への移行時は、ここでデブリーフィング文と謝礼コードを表示します。</p>
+      <p>謝礼コード（仮）: <strong id="completion-code">N26-XXXX-XXXX</strong></p>
+    </div>
+  </section>
+</div>
+
+<script src="params.js"></script>
+<script src="w_estimation.js"></script>
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const screens = {
+    w: document.getElementById('screen-w'),
+    debrief: document.getElementById('screen-debrief'),
+  };
+  function show(name) {
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+  }
+
+  WEstimation.render(screens.w);
+
+  screens.w.querySelector('.confirm-w-btn').addEventListener('click', () => {
+    const values = WEstimation.getValues();
+
+    // localStorage の既存セッション情報に書き戻す
+    try {
+      const raw = localStorage.getItem('neurips2026_session');
+      if (raw) {
+        const sess = JSON.parse(raw);
+        sess.estimatedW = values;
+        localStorage.setItem('neurips2026_session', JSON.stringify(sess));
+        document.getElementById('debug-w-log').textContent = JSON.stringify(sess, null, 2);
+      } else {
+        document.getElementById('debug-w-log').textContent = JSON.stringify({ estimatedW: values }, null, 2);
+      }
+    } catch (e) {}
+
+    // 簡易的な完了コード
+    const pid = params.get('pid') || 'local';
+    const code = `N26-${pid.slice(-4).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    document.getElementById('completion-code').textContent = code;
+    show('debrief');
+  });
+})();
+</script>
+</body>
+</html>

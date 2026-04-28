@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeurIPS2026 実験</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="container">
+
+  <!-- 共有 agent-panel: trial / view 画面のスロットに JS で差し込まれる -->
+  <div id="shared-agent-panel" class="agent-panel" style="display:none;">
+    <div class="agent-name">美咲</div>
+    <div class="agent-stage">
+      <canvas class="agent-canvas" id="agentCanvas" width="720" height="720"></canvas>
+    </div>
+  </div>
+
+  <!-- ==== Block 3: 課題教示（共通部分） ==== -->
+  <section id="block-instruction" class="block active">
+    <div class="card">
+      <h2>実験の概要</h2>
+      <p>これからあなたは、ある AI エージェント<strong>「美咲」</strong>が資源配分に対してどのような感情的反応を示すかを <strong>6回</strong> 観察します。</p>
+      <p>各試行で、画面上に試していただきたい配分が表示されます。<br>
+        あなたはスライダーをその配分に合わせて動かし、「<strong>提案する</strong>」ボタンを押してください。</p>
+      <p>すると美咲の表情が変わります。</p>
+      <p>6回の観察が終わったら、美咲が各論点をどの程度重視しているかを推定していただきます。</p>
+      <div class="actions">
+        <button id="btn-instr-next" class="btn">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== Block 4: θ 教示（条件分岐） ==== -->
+  <section id="block-theta" class="block">
+    <div class="card">
+      <h2>美咲について</h2>
+      <p id="theta-instruction" style="font-size:18px;line-height:1.8;"></p>
+      <p>このことを念頭に置いて、これから美咲の表情を観察してください。</p>
+      <div class="actions">
+        <button id="btn-theta-next" class="btn">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== Block 5: 練習試行 ==== -->
+  <section id="block-practice-intro" class="block">
+    <div class="card">
+      <span class="practice-banner">練習</span>
+      <h2>まず練習試行を行います</h2>
+      <p>本試行と同じ手順で2回練習します。<br>
+        ここで操作に慣れてから本試行に進んでください。</p>
+      <div class="actions">
+        <button id="btn-practice-start" class="btn">練習を始める</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== Block 6: 本試行 — 共通スクリーン ==== -->
+  <!-- 配分操作画面 -->
+  <section id="screen-trial" class="block">
+    <div class="card">
+      <span class="practice-banner" id="practice-badge-2" style="display:none;">練習</span>
+      <div class="trial-header">
+        <span class="trial-counter">試行 1 / 6</span>
+        <span class="change-counter">
+          残り操作回数:
+          <span class="change-badge">3</span>
+          <span class="change-badge">3</span>
+          <span class="change-badge">3</span>
+        </span>
+      </div>
+
+      <!-- agent-panel は #shared-agent-panel から JS で差し込む -->
+      <div class="agent-panel-slot"></div>
+
+      <div class="recommendation-panel">
+        <h3>試していただきたい配分</h3>
+        <ul class="recommendation-list"></ul>
+      </div>
+
+      <!-- 3D テーブル: 上 = 美咲側、下 = 参加者側、スライダーで配分 -->
+      <div class="table-container"></div>
+
+      <div class="actions">
+        <button class="btn propose-btn">提案する</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 表情確認画面 -->
+  <section id="screen-view" class="block">
+    <div class="card">
+      <span class="practice-banner" id="practice-badge-3" style="display:none;">練習</span>
+      <div class="trial-header">
+        <span class="trial-counter">試行 1 / 6</span>
+      </div>
+
+      <!-- agent-panel は #shared-agent-panel から JS で差し込む -->
+      <div class="agent-panel-slot"></div>
+
+      <div class="recommendation-panel">
+        <h3>表情を確認してください</h3>
+        <div class="proposal-display">
+          <strong>提案した配分:</strong>
+          <ul class="proposal-list"></ul>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn next-btn" disabled>次へ</button>
+        <div class="timer-note"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 練習完了→本試行への切替 -->
+  <section id="block-practice-done" class="block">
+    <div class="card">
+      <h2>練習が終わりました</h2>
+      <p>本試行に進みます。<br>
+        ここからのデータが分析対象になります。</p>
+      <div class="actions">
+        <button id="btn-main-start" class="btn">本試行を始める</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== Block 7: w 推定 ==== -->
+  <section id="block-w" class="block">
+    <div class="card">
+      <h2>美咲は各論点をどの程度重視していると思いますか？</h2>
+      <p>下のスライダーで答えてください。<br>
+        <strong>-2</strong>（嫌う）から <strong>+2</strong>（重視）の5段階です。</p>
+      <div class="w-sliders"></div>
+      <div class="actions">
+        <button class="btn confirm-w-btn">確定する</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== Block 8: 事後質問 ==== -->
+  <section id="block-post" class="block">
+    <div class="card">
+      <h2>事後アンケート</h2>
+      <div class="question">
+        <label>課題の難易度はどうでしたか？</label>
+        <div class="radio-group">
+          <label><input type="radio" name="difficulty" value="1" /> 1: とても簡単</label>
+          <label><input type="radio" name="difficulty" value="2" /> 2: 簡単</label>
+          <label><input type="radio" name="difficulty" value="3" /> 3: 普通</label>
+          <label><input type="radio" name="difficulty" value="4" /> 4: 難しい</label>
+          <label><input type="radio" name="difficulty" value="5" /> 5: とても難しい</label>
+        </div>
+      </div>
+      <div class="question">
+        <label for="strategy">どのような戦略・基準で美咲の選好を推定しましたか？（自由記述）</label>
+        <textarea id="strategy"></textarea>
+      </div>
+      <div class="question">
+        <label>注意確認:「美咲」は何回表情を変えましたか？</label>
+        <div class="radio-group">
+          <label><input type="radio" name="attn-check" value="3" /> 3回</label>
+          <label><input type="radio" name="attn-check" value="6" /> 6回</label>
+          <label><input type="radio" name="attn-check" value="9" /> 9回</label>
+          <label><input type="radio" name="attn-check" value="12" /> 12回</label>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btn-post-next" class="btn">送信</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== Block 9: デブリーフィング ==== -->
+  <section id="block-debrief" class="block">
+    <div class="card">
+      <h2>ご協力ありがとうございました</h2>
+      <p>これで実験は終了です。</p>
+      <details>
+        <summary>記録されたデータ（デバッグ用、後で削除）</summary>
+        <div class="debug-panel" id="debug-log"></div>
+      </details>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="params.js"></script>
+<script src="expression_logic.js"></script>
+<script src="agent_canvas.js"></script>
+<script src="table_view.js"></script>
+<script src="main_trial.js"></script>
+<script src="w_estimation.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ===== 共有 agent-panel をスロットに差し込む ===== */
+  const sharedAgentPanel = document.getElementById('shared-agent-panel');
+  function attachAgentTo(screenEl) {
+    if (!screenEl) return;
+    const slot = screenEl.querySelector('.agent-panel-slot');
+    if (!slot) return;
+    sharedAgentPanel.style.display = '';
+    slot.appendChild(sharedAgentPanel);
+  }
+  function detachAgent() {
+    sharedAgentPanel.style.display = 'none';
+  }
+
+  /* ===== Live2D は初回の試行画面表示時に遅延初期化 ===== */
+  let live2dInitDone = false;
+  function ensureLive2DInit() {
+    if (live2dInitDone || !window.AgentCanvas) return;
+    live2dInitDone = true;
+    window.AgentCanvas.init('agentCanvas').then(ok => {
+      console.log('Live2D init:', ok ? 'OK' : 'FAILED — PNG fallback');
+    });
+  }
+
+  /* ===== 条件割付 ===== */
+  const urlParams = new URLSearchParams(location.search);
+  const condition = {
+    cond_theta: urlParams.get('theta') || randomAssignCondition().cond_theta,
+    cond_tau:   urlParams.get('tau')   || randomAssignCondition().cond_tau,
+    cond_seq:   urlParams.get('seq')   || randomAssignCondition().cond_seq,
+  };
+  const participantId = urlParams.get('pid') || `local_${Date.now()}`;
+
+  /* ===== ブロック切替 ===== */
+  const blocks = [
+    'block-instruction','block-theta',
+    'block-practice-intro',
+    'screen-trial','screen-view',
+    'block-practice-done',
+    'block-w','block-post','block-debrief',
+  ];
+  function show(id) {
+    blocks.forEach(b => {
+      const el = document.getElementById(b);
+      if (el) el.classList.toggle('active', b === id);
+    });
+    /* trial / view 画面以外では agent-panel を隠す */
+    if (id !== 'screen-trial' && id !== 'screen-view') {
+      detachAgent();
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  /* ===== 状態 ===== */
+  let phase = 'practice'; // 'practice' | 'main'
+  let currentTrial = 1;
+  const postSurvey = {};
+
+  /* ===== Block 3: 課題教示 ===== */
+  document.getElementById('btn-instr-next').addEventListener('click', () => {
+    document.getElementById('theta-instruction').innerHTML
+      = THETA_INSTRUCTIONS[condition.cond_theta] || '';
+    show('block-theta');
+  });
+
+  /* ===== Block 4: θ 教示 ===== */
+  document.getElementById('btn-theta-next').addEventListener('click', () => {
+    show('block-practice-intro');
+  });
+
+  /* ===== Block 5: 練習開始 ===== */
+  document.getElementById('btn-practice-start').addEventListener('click', () => {
+    phase = 'practice';
+    currentTrial = 1;
+    MainTrial.initSession({
+      participantId, condTheta: condition.cond_theta,
+      condTau: condition.cond_tau, condSeq: condition.cond_seq,
+      isPractice: true,
+    });
+    togglePracticeBadges(true);
+    enterTrial();
+  });
+
+  /* ===== 本試行開始 ===== */
+  document.getElementById('btn-main-start').addEventListener('click', () => {
+    phase = 'main';
+    currentTrial = 1;
+    MainTrial.initSession({
+      participantId, condTheta: condition.cond_theta,
+      condTau: condition.cond_tau, condSeq: condition.cond_seq,
+      isPractice: false,
+    });
+    togglePracticeBadges(false);
+    enterTrial();
+  });
+
+  function togglePracticeBadges(visible) {
+    ['practice-badge-2','practice-badge-3'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = visible ? 'inline-block' : 'none';
+    });
+  }
+
+  /* ===== Block 6: 試行ループ ===== */
+  const screenTrial = document.getElementById('screen-trial');
+  const screenView  = document.getElementById('screen-view');
+
+  function enterTrial() {
+    MainTrial.startTrial(currentTrial);
+    attachAgentTo(screenTrial);
+    MainTrial.renderTrialScreen(screenTrial);
+    show('screen-trial');
+    /* 試行画面が可視になったタイミングで Live2D を初期化 */
+    requestAnimationFrame(() => ensureLive2DInit());
+  }
+  function enterView(expr) {
+    attachAgentTo(screenView);
+    MainTrial.renderViewScreen(screenView, expr);
+    show('screen-view');
+  }
+
+  screenTrial.querySelector('.propose-btn').addEventListener('click', () => {
+    MainTrial.onPropose(screenTrial, (expr) => enterView(expr));
+  });
+
+  screenView.querySelector('.next-btn').addEventListener('click', () => {
+    MainTrial.endTrial();
+    currentTrial++;
+    const total = phase === 'practice'
+      ? PRACTICE_RECOMMENDATIONS.length : PARAMS.T;
+
+    if (currentTrial > total) {
+      // フェーズ終了
+      if (phase === 'practice') {
+        // 練習データは破棄（主実験ログのみ残す）
+        show('block-practice-done');
+      } else {
+        // 本試行終了 → w 推定へ
+        try {
+          localStorage.setItem('neurips2026_main_session',
+            JSON.stringify(MainTrial.sessionState));
+        } catch (e) {}
+        WEstimation.reset();
+        WEstimation.render(document.getElementById('block-w'));
+        show('block-w');
+      }
+      return;
+    }
+    enterTrial();
+  });
+
+  /* ===== Block 7: w 推定確定 ===== */
+  document.querySelector('#block-w .confirm-w-btn').addEventListener('click', () => {
+    const values = WEstimation.getValues();
+    MainTrial.sessionState.estimatedW = values;
+    show('block-post');
+  });
+
+  /* ===== Block 8: 事後質問送信 ===== */
+  document.getElementById('btn-post-next').addEventListener('click', () => {
+    const d = document.querySelector('input[name="difficulty"]:checked');
+    postSurvey.difficulty = d ? parseInt(d.value, 10) : null;
+    postSurvey.strategy = document.getElementById('strategy').value;
+    const a = document.querySelector('input[name="attn-check"]:checked');
+    postSurvey.attention_check = a ? parseInt(a.value, 10) : null;
+
+    /* セッション全体の保存（テスト用） */
+    const fullData = {
+      participantId,
+      condition,
+      mainSession: MainTrial.sessionState,
+      postSurvey,
+      finishedAt: new Date().toISOString(),
+    };
+    try {
+      localStorage.setItem('neurips2026_full', JSON.stringify(fullData));
+    } catch (e) {}
+    document.getElementById('debug-log').textContent
+      = JSON.stringify(fullData, null, 2);
+
+    show('block-debrief');
+  });
+})();
+</script>
+</body>
+</html>
