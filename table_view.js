@@ -19,9 +19,12 @@
 (function () {
   'use strict';
 
-  /* ===== ジオメトリ ===== */
+  /* ===== ジオメトリ =====
+   * 台形は奥（上辺=狭い）と手前（下辺=広い）の遠近感を作る。
+   * 各レーンは台形の対角線に沿って傾ける（中央レーンのみ垂直）。
+   */
   const TABLE_WIDTH  = 720;
-  const TABLE_HEIGHT = 560;
+  const TABLE_HEIGHT = 360;
   const TABLE_TAPER  = 160;  // 上辺の左右切り欠き量
 
   /* レーンの上下端 X 座標（台形の対角線と平行） */
@@ -51,8 +54,6 @@
         <div class="table-side-label opponent">↑ 美咲（奥）</div>
         <svg class="table-3d-svg" viewBox="0 0 ${TABLE_WIDTH} ${TABLE_HEIGHT}" preserveAspectRatio="none">
           <polygon points="${x1},0 ${x2},0 ${x3},${TABLE_HEIGHT} ${x4},${TABLE_HEIGHT}" />
-          <line x1="${x1}" y1="0" x2="${x4}" y2="${TABLE_HEIGHT}" stroke="#a8835a" stroke-dasharray="4 4" />
-          <line x1="${x2}" y1="0" x2="${x3}" y2="${TABLE_HEIGHT}" stroke="#a8835a" stroke-dasharray="4 4" />
         </svg>
         <div class="lanes"></div>
         <div class="table-side-label self">↓ あなた（手前）</div>
@@ -69,10 +70,19 @@
       const cx = (xTop + xBottom) / 2;
       const leftPct = (cx / TABLE_WIDTH) * 100;
 
+      /* 対角線に沿った傾き角度（度数法）
+       *   xTop > xBottom（左レーン）: 正の値 → 時計回り（top が右に倒れる）
+       *   xTop < xBottom（右レーン）: 負の値 → 反時計回り
+       *   中央レーン: 0
+       */
+      const angleDeg = Math.atan2(xTop - xBottom, TABLE_HEIGHT) * 180 / Math.PI;
+
       const lane = document.createElement('div');
       lane.className = 'lane';
       lane.dataset.idx = String(i);
       lane.style.left = `calc(${leftPct}% - 50px)`;
+      lane.style.setProperty('--lane-angle', `${angleDeg}deg`);
+      lane.style.setProperty('--lane-counter-angle', `${-angleDeg}deg`);
       lane.innerHTML = `
         <div class="opp-stack" data-idx="${i}"></div>
         <input type="range" class="lane-slider" min="0" max="${max}" step="1"

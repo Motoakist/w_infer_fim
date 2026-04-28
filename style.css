@@ -73,6 +73,45 @@ h1, h2, h3 {
   background-color: #4b5563;
 }
 
+/* 提案ボタン: former_exp と同様に画像ベース。
+ * <button class="propose-btn"><img src="stimuli/propose_button.png"></button>
+ * ホバー時に黄色いグロー（#F9DB57）— former_exp.html line 117-119 を踏襲。
+ */
+.propose-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 0;
+  line-height: 0;
+  display: inline-block;
+}
+
+.propose-btn img {
+  width: 220px;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.propose-btn:hover:not(:disabled) img {
+  box-shadow: 0px 0px 14px 3px #F9DB57;
+}
+
+.propose-btn:active:not(:disabled) img {
+  transform: translateY(2px);
+}
+
+.propose-btn:disabled {
+  cursor: not-allowed;
+}
+
+.propose-btn:disabled img {
+  opacity: 0.4;
+  filter: grayscale(0.5);
+}
+
 /* メイン試行画面のレイアウト */
 .trial-header {
   display: flex;
@@ -164,7 +203,7 @@ h1, h2, h3 {
   position: relative;
   width: 720px;
   max-width: 100%;
-  height: 600px;
+  height: 400px;
   margin: 32px auto;
 }
 
@@ -172,15 +211,15 @@ h1, h2, h3 {
   position: absolute;
   top: 20px; left: 0;
   width: 100%;
-  height: 560px;
+  height: 360px;
   pointer-events: none;
   z-index: 1;
 }
 
 .table-3d-svg polygon {
-  fill: #f5e6d3;
-  stroke: #8b6f47;
-  stroke-width: 3;
+  fill: none;
+  stroke: #000;
+  stroke-width: 2;
 }
 
 .table-side-label {
@@ -200,7 +239,7 @@ h1, h2, h3 {
   position: absolute;
   top: 20px; left: 0;
   width: 100%;
-  height: 560px;
+  height: 360px;
   z-index: 2;
 }
 
@@ -208,12 +247,15 @@ h1, h2, h3 {
   position: absolute;
   top: 0;
   width: 100px;
-  height: 560px;
+  height: 360px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0;
+  padding: 6px 0;
+  /* 台形に合わせて傾けるための変数 — JS が --lane-angle を設定 */
+  transform: rotate(var(--lane-angle, 0deg));
+  transform-origin: 50% 50%;
 }
 
 /* アイテム置き場（奥側=小さく、手前側=大きく） */
@@ -226,17 +268,19 @@ h1, h2, h3 {
 }
 
 .opp-stack {
-  height: 130px;
+  height: 80px;
   justify-content: flex-end;
 }
 
 .self-stack {
-  height: 160px;
+  height: 100px;
   justify-content: flex-start;
 }
 
 .item-img {
   display: block;
+  /* レーンが傾いてもアイテム画像は正立を維持 */
+  transform: rotate(var(--lane-counter-angle, 0deg));
 }
 
 .opp-item-img {
@@ -263,8 +307,8 @@ h1, h2, h3 {
   writing-mode: vertical-lr;
   direction: rtl;
   width: 28px;
-  height: 220px;
-  margin: 12px 0;
+  height: 150px;
+  margin: 8px 0;
   cursor: pointer;
   accent-color: #2563eb;
   transition: filter 0.2s ease;

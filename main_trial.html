@@ -37,7 +37,9 @@
       <div class="table-container"></div>
 
       <div class="actions">
-        <button class="btn propose-btn">提案する</button>
+        <button class="propose-btn" type="button" aria-label="提案する">
+          <img src="https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_37see1hsKpzpuAK" alt="提案する" />
+        </button>
       </div>
     </div>
   </section>
@@ -142,7 +144,23 @@
     show('view');
   }
 
-  screens.trial.querySelector('.propose-btn').addEventListener('click', () => {
+  /* 提案ボタンの 3 状態画像（former_exp.js line 835-838 を踏襲） */
+  const PROPOSE_BTN_IMG = {
+    no_push: 'https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_37see1hsKpzpuAK',
+    pushed:  'https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_bln2nk0YWrbZU5E',
+    bright:  'https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_b28iR0DizQNxbYG',
+  };
+  const proposeBtn = screens.trial.querySelector('.propose-btn');
+  const proposeBtnImg = proposeBtn.querySelector('img');
+  proposeBtn.addEventListener('mouseover', () => {
+    if (!proposeBtn.disabled) proposeBtnImg.src = PROPOSE_BTN_IMG.bright;
+  });
+  proposeBtn.addEventListener('mouseout', () => {
+    if (!proposeBtn.disabled) proposeBtnImg.src = PROPOSE_BTN_IMG.no_push;
+  });
+  proposeBtn.addEventListener('click', () => {
+    proposeBtnImg.src = PROPOSE_BTN_IMG.pushed;
+    setTimeout(() => { proposeBtnImg.src = PROPOSE_BTN_IMG.no_push; }, 500);
     MainTrial.onPropose(screens.trial, (expr) => showView(expr));
   });
 
