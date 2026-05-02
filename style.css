@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-  max-width: 960px;
+  max-width: 1100px;     /* テーブル(720) + 提案ボタン領域(200) + gap + 余白を収める */
   margin: 0 auto;
   padding: 24px;
 }
@@ -95,6 +95,11 @@ h1, h2, h3 {
   transition: box-shadow 0.2s ease, transform 0.1s ease;
 }
 
+/* テーブル右側に置くときは少し小さくしてカード内に収める */
+.trial-side-actions .propose-btn img {
+  width: 160px;
+}
+
 .propose-btn:hover:not(:disabled) img {
   box-shadow: 0px 0px 14px 3px #F9DB57;
 }
@@ -172,50 +177,99 @@ h1, h2, h3 {
   pointer-events: none;
 }
 
-/* ===== 3Dテーブル + アイテム =====
- * SVG 台形をベースに、3 つの垂直レーンを等間隔配置。
- * 各レーンは固定サイズの flex コンテナ：[奥アイテム] [スライダー] [ラベル] [手前アイテム]
+/* テーブル(左) + アクションボタン(右)の横並びコンテナ
+ * flex-wrap: nowrap で必ず1行に並べる(テーブル下に折り返さない)。
+ */
+.trial-main-area {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin: 24px 0;
+  flex-wrap: nowrap;
+}
+
+.trial-side-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-shrink: 0;
+  width: 200px;          /* 横幅を固定し、ボタン切替でテーブル位置がブレない */
+}
+
+/* 提案ボタンと次へボタンが入れ替わるスロット
+ * 高さを固定して、display 切替時にレイアウトが揺れないようにする。
+ */
+.action-slot {
+  position: relative;
+  width: 100%;
+  min-height: 100px;     /* 提案ボタン画像の高さに合わせて確保 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-slot .propose-btn,
+.action-slot .next-btn {
+  /* 同じ位置に重ねて配置(片方は display:none で非表示) */
+  margin: 0;
+}
+
+/* タイマーノートも高さを確保して揺れを防ぐ */
+.trial-side-actions .timer-note {
+  min-height: 36px;
+  width: 100%;
+  margin-top: 0;
+}
+
+/* ===== テーブル + アイテム =====
+ * SVG 長方形をベースに、3 つの垂直レーンを等間隔配置(回転なし)。
+ * 各レーンは固定サイズの flex コンテナ：[奥アイテム] [スライダー] [手前アイテム]
  * アイテムは可視/不可視で個数を表現するため、レイアウトは値に依存しない。
  */
 .table-3d {
   position: relative;
   width: 720px;
   max-width: 100%;
-  height: 400px;
-  margin: 32px auto;
+  height: 460px;        /* 400 → 460: ラベル用の上下スペースを各 50px 確保 */
+  margin: 0;            /* trial-main-area の flex 配置で位置決めするので auto は外す */
 }
 
 .table-3d-svg {
   position: absolute;
-  top: 20px; left: 0;
+  top: 50px; left: 0;   /* 上ラベルとの間に 50px 確保 */
   width: 100%;
   height: 360px;
   pointer-events: none;
   z-index: 1;
 }
 
-.table-3d-svg polygon {
-  fill: none;
+.table-3d-svg rect {
+  fill: #fafafa;
   stroke: #000;
   stroke-width: 2;
 }
 
 .table-side-label {
   position: absolute;
-  font-size: 13px;
-  color: #6b7280;
-  font-weight: 600;
+  font-size: 18px;       /* 13 → 18: もう少し大きく */
+  color: #374151;
+  font-weight: 700;
   text-align: center;
   width: 100%;
   z-index: 3;
+  line-height: 1.2;
 }
-.table-side-label.opponent { top: 0; }
-.table-side-label.self     { bottom: 0; }
+.table-side-label.opponent { top: 8px; }      /* テーブル上端から離す */
+.table-side-label.self     { bottom: 8px; }   /* テーブル下端から離す */
 
-/* レーン（論点1本分の縦の流れ） */
+/* レーン(論点1本分の縦の流れ) */
 .lanes {
   position: absolute;
-  top: 20px; left: 0;
+  top: 50px; left: 0;    /* SVG と同じく 50px に揃える */
   width: 100%;
   height: 360px;
   z-index: 2;
@@ -231,9 +285,7 @@ h1, h2, h3 {
   align-items: center;
   justify-content: space-between;
   padding: 6px 0;
-  /* 台形に合わせて傾けるための変数 — JS が --lane-angle を設定 */
-  transform: rotate(var(--lane-angle, 0deg));
-  transform-origin: 50% 50%;
+  /* 台形演出は廃止 → レーン回転なし */
 }
 
 /* アイテム置き場（奥側=小さく、手前側=大きく） */
@@ -257,8 +309,6 @@ h1, h2, h3 {
 
 .item-img {
   display: block;
-  /* レーンが傾いてもアイテム画像は正立を維持 */
-  transform: rotate(var(--lane-counter-angle, 0deg));
 }
 
 .opp-item-img {
@@ -298,17 +348,9 @@ h1, h2, h3 {
   filter: drop-shadow(0 0 6px rgba(22, 163, 74, 0.55));
 }
 
-.lane-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #374151;
-  background: rgba(255,255,255,0.9);
-  padding: 2px 8px;
-  border-radius: 4px;
-  pointer-events: none;
-}
+/* 論点ラベル(.lane-label)は廃止。アイテム画像で識別する。 */
 
-/* スライダー直下に表示する残り操作回数 */
+/* スライダー直下に表示する残り操作回数(PARAMS.showRemainingCount で表示制御) */
 .lane-remaining {
   font-size: 11px;
   font-weight: 600;
@@ -344,18 +386,57 @@ h1, h2, h3 {
   list-style: none;
   padding: 0;
   margin: 12px 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
 }
 
 .recommendation-list li {
-  padding: 8px 0;
-  font-size: 18px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
   color: #78350f;
-  border-bottom: 1px dashed #fde68a;
 }
 
-.recommendation-list li:last-child {
-  border-bottom: none;
+/* 論点ラベルなし、アイテム画像 + 大きな数値で表現 */
+.rec-item-img {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+/* Grid で「ラベル列 + 数値列」の 2x2 を作り、ラベルの文字数が違っても
+ * 数値列の左端が縦に揃うようにする(美咲 2文字 / あなた 3文字 のズレ対策)
+ */
+.rec-numbers {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: baseline;
+  font-weight: 600;
+  color: #78350f;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.rec-numbers .rec-label {
+  font-size: 14px;
+  color: #92400e;
+  text-align: right;
+  align-self: center;
+}
+
+.rec-big {
+  font-size: 36px;
+  font-weight: 800;
+  color: #b45309;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
 }
 
 /* スライダー領域 */

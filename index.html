@@ -57,8 +57,9 @@
     </div>
   </section>
 
-  <!-- ==== Block 6: 本試行 — 共通スクリーン ==== -->
-  <!-- 配分操作画面 -->
+  <!-- ==== Block 6: 本試行 — 単一スクリーン ====
+   * 提案後もテーブルは見えたまま。表情だけ更新し、提案ボタン → 次へボタンに切り替わる。
+   -->
   <section id="screen-trial" class="block">
     <div class="card">
       <span class="practice-banner" id="practice-badge-2" style="display:none;">練習</span>
@@ -70,43 +71,30 @@
       <div class="agent-panel-slot"></div>
 
       <div class="recommendation-panel">
-        <h3>試していただきたい配分</h3>
+        <h3 class="rec-title">試していただきたい配分</h3>
         <ul class="recommendation-list"></ul>
       </div>
 
-      <!-- 3D テーブル: 上 = 美咲側、下 = 参加者側、スライダーで配分 -->
-      <div class="table-container"></div>
+      <!-- テーブル(左) + アクションボタン(右)を横並び
+       * 提案ボタンと次へボタンは同じ位置(右側)で入れ替わる構成。
+       * テーブルの位置がボタン切替で動かないよう、サイドエリアの高さを固定。
+       -->
+      <div class="trial-main-area">
+        <!-- テーブル: 上 = 美咲側、下 = 参加者側、スライダーで配分(提案後はロック) -->
+        <div class="table-container"></div>
 
-      <div class="actions">
-        <button class="propose-btn" type="button" aria-label="提案する">
-          <img src="https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_37see1hsKpzpuAK" alt="提案する" />
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- 表情確認画面 -->
-  <section id="screen-view" class="block">
-    <div class="card">
-      <span class="practice-banner" id="practice-badge-3" style="display:none;">練習</span>
-      <div class="trial-header">
-        <span class="trial-counter">試行 1 / 6</span>
-      </div>
-
-      <!-- agent-panel は #shared-agent-panel から JS で差し込む -->
-      <div class="agent-panel-slot"></div>
-
-      <div class="recommendation-panel">
-        <h3>表情を確認してください</h3>
-        <div class="proposal-display">
-          <strong>提案した配分:</strong>
-          <ul class="proposal-list"></ul>
+        <div class="trial-side-actions">
+          <!-- 提案ボタンと次へボタンを同じスロットに重ねる構造
+           * .action-slot 内で display を切替えるので、外側の高さが不変。
+           -->
+          <div class="action-slot">
+            <button class="propose-btn" type="button" aria-label="提案する">
+              <img src="https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_37see1hsKpzpuAK" alt="提案する" />
+            </button>
+            <button class="btn next-btn" type="button" disabled style="display:none;">次へ</button>
+          </div>
+          <div class="timer-note"></div>
         </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn next-btn" disabled>次へ</button>
-        <div class="timer-note"></div>
       </div>
     </div>
   </section>
@@ -217,33 +205,65 @@
     });
   }
 
-  /* ===== 条件割付 ===== */
-  const urlParams = new URLSearchParams(location.search);
-  const condition = {
-    cond_theta: urlParams.get('theta') || randomAssignCondition().cond_theta,
-    cond_tau:   urlParams.get('tau')   || randomAssignCondition().cond_tau,
-    cond_seq:   urlParams.get('seq')   || randomAssignCondition().cond_seq,
-  };
-  const participantId = urlParams.get('pid') || `local_${Date.now()}`;
+  /* ===== 条件割付（Qualtrics 埋め込み変数対応） ===== */
+  /* initFromQualtrics() で URL クエリから:
+   *   theta / tau / seq / w_self / w_other / extreme_ratio / pid
+   * を一括取得し、PARAMS.effective_* に c, Δ_+, Δ_-, τ閾値 を計算・反映。
+   *
+   * Qualtrics Survey Flow → Web Service → URL 例:
+   *   ?theta=${e://Field/cond_theta}&tau=${e://Field/cond_tau}&seq=${e://Field/cond_seq}
+   *    &w_self=${e://Field/w_self}&w_other=${e://Field/w_other}&pid=${e://Field/ResponseID}
+   */
+  const qualtricsInit = (typeof initFromQualtrics === 'function')
+    ? initFromQualtrics()
+    : null;
+  const condition = qualtricsInit ? {
+    cond_theta: qualtricsInit.parsed.cond_theta,
+    cond_tau:   qualtricsInit.parsed.cond_tau,
+    cond_seq:   qualtricsInit.parsed.cond_seq,
+  } : (() => {
+    const urlParams = new URLSearchParams(location.search);
+    return {
+      cond_theta: urlParams.get('theta') || randomAssignCondition().cond_theta,
+      cond_tau:   urlParams.get('tau')   || randomAssignCondition().cond_tau,
+      cond_seq:   urlParams.get('seq')   || randomAssignCondition().cond_seq,
+    };
+  })();
+  const participantId = qualtricsInit
+    ? qualtricsInit.parsed.pid
+    : (new URLSearchParams(location.search).get('pid') || `local_${Date.now()}`);
+
+  /* E最適系列の事前計算 DB を非同期にロード（無くても fallback で動作） */
+  if (typeof loadOptimalSequencesDb === 'function') {
+    loadOptimalSequencesDb().catch(e => console.warn('Optimal sequences load failed:', e));
+  }
 
   /* ===== ブロック切替 ===== */
   const blocks = [
     'block-instruction','block-theta',
     'block-practice-intro',
-    'screen-trial','screen-view',
+    'screen-trial',
     'block-practice-done',
     'block-w','block-post','block-debrief',
   ];
+  let currentShownId = null;
   function show(id) {
+    const isSame = (currentShownId === id);
+    currentShownId = id;
     blocks.forEach(b => {
       const el = document.getElementById(b);
       if (el) el.classList.toggle('active', b === id);
     });
-    /* trial / view 画面以外では agent-panel を隠す */
-    if (id !== 'screen-trial' && id !== 'screen-view') {
+    /* 試行画面以外では agent-panel を隠す */
+    if (id !== 'screen-trial') {
       detachAgent();
     }
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    /* 同一スクリーンに留まる場合(=試行間の進行)はスクロールリセットしない
+     * ことで、ページ遷移したような印象を避ける。
+     */
+    if (!isSame) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
   }
 
   /* ===== 状態 ===== */
@@ -290,7 +310,7 @@
   });
 
   function togglePracticeBadges(visible) {
-    ['practice-badge-2','practice-badge-3'].forEach(id => {
+    ['practice-badge-2'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = visible ? 'inline-block' : 'none';
     });
@@ -298,7 +318,6 @@
 
   /* ===== Block 6: 試行ループ ===== */
   const screenTrial = document.getElementById('screen-trial');
-  const screenView  = document.getElementById('screen-view');
 
   function enterTrial() {
     MainTrial.startTrial(currentTrial);
@@ -307,11 +326,6 @@
     show('screen-trial');
     /* 試行画面が可視になったタイミングで Live2D を初期化 */
     requestAnimationFrame(() => ensureLive2DInit());
-  }
-  function enterView(expr) {
-    attachAgentTo(screenView);
-    MainTrial.renderViewScreen(screenView, expr);
-    show('screen-view');
   }
 
   /* 提案ボタンの 3 状態画像（former_exp.js line 835-838 を踏襲） */
@@ -331,10 +345,13 @@
   proposeBtn.addEventListener('click', () => {
     proposeBtnImg.src = PROPOSE_BTN_IMG.pushed;
     setTimeout(() => { proposeBtnImg.src = PROPOSE_BTN_IMG.no_push; }, 500);
-    MainTrial.onPropose(screenTrial, (expr) => enterView(expr));
+    MainTrial.onPropose(screenTrial, (expr) => {
+      /* 同一画面で post-propose 状態に移行(画面遷移なし) */
+      MainTrial.enterPostPropose(screenTrial, expr);
+    });
   });
 
-  screenView.querySelector('.next-btn').addEventListener('click', () => {
+  screenTrial.querySelector('.next-btn').addEventListener('click', () => {
     MainTrial.endTrial();
     currentTrial++;
     const total = phase === 'practice'

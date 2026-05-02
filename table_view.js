@@ -1,11 +1,13 @@
-/* 3D テーブル + アイテム配置 + 垂直スライダー
+/* テーブル + アイテム配置 + 垂直スライダー
  *
  * 設計上のポイント：
- * - 台形は SVG で「奥が狭く、手前が広い」遠近表現として描画。
- * - 3 つのレーン（論点）は等間隔に水平配置し、各レーンには垂直スライダーを置く。
- * - スライダーは回転を使わず writing-mode: vertical-lr で素直に垂直化。
+ * - シンプルな長方形テーブル(SVG)。台形による奥行き演出は廃止。
+ * - 3 つのレーン(論点)は等間隔に水平配置し、各レーンには垂直スライダーを置く。
+ * - スライダーは writing-mode: vertical-lr で素直に垂直化(回転なし)。
  * - アイテムは絶対配置で重ね描き、最大値ぶん事前生成して可視/不可視で表現
  *   → 値変化でレイアウトが変わらず、スライダーの位置がブレない。
+ * - 論点ラベル(「論点1」等)は廃止。アイテム画像で識別する。
+ * - 残り操作回数表示は PARAMS.showRemainingCount で JS から切替可能。
  *
  * API:
  *   TableView.render(rootEl, {
@@ -14,25 +16,20 @@
  *   })
  *   TableView.setValue(idx, value)
  *   TableView.lockSlider(idx)
+ *   TableView.lockAllSliders()
  */
 
 (function () {
   'use strict';
 
   /* ===== ジオメトリ =====
-   * 台形は奥（上辺=狭い）と手前（下辺=広い）の遠近感を作る。
-   * 各レーンは台形の対角線に沿って傾ける（中央レーンのみ垂直）。
+   * 長方形テーブル。レーンは等間隔に水平配置(回転なし)。
    */
   const TABLE_WIDTH  = 720;
   const TABLE_HEIGHT = 360;
-  const TABLE_TAPER  = 160;  // 上辺の左右切り欠き量
 
-  /* レーンの上下端 X 座標（台形の対角線と平行） */
-  function laneXTop(idx, total) {
-    const usable = TABLE_WIDTH - 2 * TABLE_TAPER;
-    return TABLE_TAPER + usable * (idx + 1) / (total + 1);
-  }
-  function laneXBottom(idx, total) {
+  /* レーン中央の X 座標 */
+  function laneX(idx, total) {
     return TABLE_WIDTH * (idx + 1) / (total + 1);
   }
 
@@ -42,21 +39,16 @@
     const num = opts.issueLabels.length;
     const max = opts.itemMax;
     const recommendation = opts.recommendation || [];
-
-    /* SVG 台形の頂点 */
-    const x1 = TABLE_TAPER;                  // 上辺左
-    const x2 = TABLE_WIDTH - TABLE_TAPER;    // 上辺右
-    const x3 = TABLE_WIDTH;                  // 下辺右
-    const x4 = 0;                            // 下辺左
+    const showRemaining = (typeof PARAMS !== 'undefined') && !!PARAMS.showRemainingCount;
 
     rootEl.innerHTML = `
       <div class="table-3d">
-        <div class="table-side-label opponent">↑ 美咲（奥）</div>
+        <div class="table-side-label opponent">\u2191 \u7f8e\u54b2(\u5965)</div>
         <svg class="table-3d-svg" viewBox="0 0 ${TABLE_WIDTH} ${TABLE_HEIGHT}" preserveAspectRatio="none">
-          <polygon points="${x1},0 ${x2},0 ${x3},${TABLE_HEIGHT} ${x4},${TABLE_HEIGHT}" />
+          <rect x="0" y="0" width="${TABLE_WIDTH}" height="${TABLE_HEIGHT}" />
         </svg>
         <div class="lanes"></div>
-        <div class="table-side-label self">↓ あなた（手前）</div>
+        <div class="table-side-label self">\u2193 \u3042\u306a\u305f(\u624b\u524d)</div>
       </div>
     `;
 
@@ -64,36 +56,26 @@
     state = { rootEl, opts, lanes: [] };
 
     for (let i = 0; i < num; i++) {
-      const xTop    = laneXTop(i, num);
-      const xBottom = laneXBottom(i, num);
-      /* レーンの中心 X は上下平均（垂直配置の中央） */
-      const cx = (xTop + xBottom) / 2;
+      const cx = laneX(i, num);
       const leftPct = (cx / TABLE_WIDTH) * 100;
-
-      /* 対角線に沿った傾き角度（度数法）
-       *   xTop > xBottom（左レーン）: 正の値 → 時計回り（top が右に倒れる）
-       *   xTop < xBottom（右レーン）: 負の値 → 反時計回り
-       *   中央レーン: 0
-       */
-      const angleDeg = Math.atan2(xTop - xBottom, TABLE_HEIGHT) * 180 / Math.PI;
 
       const lane = document.createElement('div');
       lane.className = 'lane';
       lane.dataset.idx = String(i);
       lane.style.left = `calc(${leftPct}% - 50px)`;
-      lane.style.setProperty('--lane-angle', `${angleDeg}deg`);
-      lane.style.setProperty('--lane-counter-angle', `${-angleDeg}deg`);
+      const remainingHtml = showRemaining
+        ? `<div class="lane-remaining" data-idx="${i}">残り <span class="remaining-num">${opts.maxChanges ?? '-'}</span> 回</div>`
+        : '';
       lane.innerHTML = `
         <div class="opp-stack" data-idx="${i}"></div>
         <input type="range" class="lane-slider" min="0" max="${max}" step="1"
                value="${opts.initialValues[i] ?? 0}" data-idx="${i}" />
-        <div class="lane-remaining" data-idx="${i}">残り <span class="remaining-num">${opts.maxChanges ?? '-'}</span> 回</div>
-        <div class="lane-label">${opts.issueLabels[i]}</div>
+        ${remainingHtml}
         <div class="self-stack" data-idx="${i}"></div>
       `;
       lanesEl.appendChild(lane);
 
-      /* アイテムを最大数ぶん事前配置（可視/不可視で枚数を表現） */
+      /* アイテムを最大数ぶん事前配置(可視/不可視で枚数を表現) */
       const oppStack  = lane.querySelector('.opp-stack');
       const selfStack = lane.querySelector('.self-stack');
       for (let j = 0; j < max; j++) {
@@ -114,7 +96,7 @@
       const laneEntry = { lane, slider, oppStack, selfStack };
       state.lanes.push(laneEntry);
 
-      /* 初期描画は state.lanes に積んだ後に行う（laneEntry を直接渡す） */
+      /* 初期描画は state.lanes に積んだ後に行う(laneEntry を直接渡す) */
       paintItems(i, opts.initialValues[i] ?? 0, laneEntry);
       updateMatchClass(i, opts.initialValues[i] ?? 0, laneEntry);
 
@@ -143,9 +125,9 @@
   }
 
   /* アイテム可視数を更新
-   * value = 美咲側（奥）の枚数（スライダー値の意味）。
-   * 参加者側（手前） = max - value。
-   * - paper の x_self = 美咲（エージェント）への配分 と一致
+   * value = 美咲側(奥)の枚数(スライダー値の意味)。
+   * 参加者側(手前) = max - value。
+   * - paper の x_self = 美咲(エージェント)への配分 と一致
    * - スライダーを上に動かすほど value 増 → 美咲側のアイテム増 と視覚的に整合
    */
   function paintItems(idx, value, laneOverride) {
@@ -181,10 +163,52 @@
     if (state.lanes[idx]) state.lanes[idx].slider.disabled = true;
   }
 
+  function lockAllSliders() {
+    if (!state) return;
+    state.lanes.forEach(l => l.slider.disabled = true);
+  }
+
   function unlockAll() {
     if (!state) return;
     state.lanes.forEach(l => l.slider.disabled = false);
   }
 
-  window.TableView = { render, setValue, lockSlider, unlockAll };
+  /* 次試行への切替: HTML 再構築せずに値・推薦・ロック状態だけリセット
+   * これにより、テーブルが視覚的にチラつかず、画面遷移っぽく見えない。
+   */
+  function resetForTrial(opts) {
+    if (!state) return;
+    /* opts の更新(recommendation はマッチ判定で参照される) */
+    if (opts.recommendation) state.opts.recommendation = opts.recommendation.slice();
+    if (opts.initialValues)  state.opts.initialValues  = opts.initialValues.slice();
+    if (typeof opts.maxChanges === 'number') state.opts.maxChanges = opts.maxChanges;
+
+    /* 各レーンのスライダー値・アイテム表示・ロック・matched をリセット */
+    state.lanes.forEach((lane, i) => {
+      const v = (opts.initialValues && opts.initialValues[i]) ?? 0;
+      lane.slider.value = String(v);
+      lane.slider.disabled = false;
+      paintItems(i, v);
+      updateMatchClass(i, v);
+    });
+
+    /* 残り回数表示を初期値に戻す(表示モード時のみ) */
+    if (typeof PARAMS !== 'undefined' && PARAMS.showRemainingCount) {
+      const remainingEls = state.rootEl.querySelectorAll('.lane-remaining');
+      remainingEls.forEach(el => {
+        const num = el.querySelector('.remaining-num');
+        if (num) num.textContent = String(opts.maxChanges ?? '-');
+        el.classList.remove('exhausted');
+      });
+    }
+  }
+
+  function isRendered() {
+    return !!(state && state.rootEl && state.rootEl.querySelector('.table-3d'));
+  }
+
+  window.TableView = {
+    render, setValue, lockSlider, lockAllSliders, unlockAll,
+    resetForTrial, isRendered,
+  };
 })();
