@@ -143,18 +143,33 @@
      * スライダー値 = 美咲(奥)の枚数。両側の数を併記して誤解を防ぐ。
      * 論点ラベルは廃止し、アイテム画像 + 大きな数値で表現。
      */
-    const recList = $('.recommendation-list', root);
-    if (recList) {
-      recList.innerHTML = recommendation.map((op, i) => {
-        const my = PARAMS.X_total - op;
-        return `<li>
-          <img src="stimuli/item${i + 1}.png" class="rec-item-img" alt="item${i + 1}">
-          <span class="rec-numbers">
-            <span><span class="rec-label">美咲</span><span class="rec-big">${op}</span></span>
-            <span><span class="rec-label">あなた</span><span class="rec-big">${my}</span></span>
-          </span>
-        </li>`;
-      }).join('');
+    /* 推薦配分を 2 段の表として描画
+     *   [    ] [item1 img] [item2 img] [item3 img]
+     *   [美咲]    op1         op2         op3
+     *   [あなた]  my1         my2         my3
+     */
+    const recTableContainer = $('.recommendation-table-container', root);
+    if (recTableContainer) {
+      const headerCells = recommendation.map((_, i) =>
+        `<th><img src="stimuli/item${i + 1}.png" class="rec-item-img" alt="item${i + 1}"></th>`
+      ).join('');
+      const oppCells = recommendation.map(op =>
+        `<td><span class="rec-big">${op}</span></td>`
+      ).join('');
+      const myCells = recommendation.map(op =>
+        `<td><span class="rec-big">${PARAMS.X_total - op}</span></td>`
+      ).join('');
+      recTableContainer.innerHTML = `
+        <table class="rec-table">
+          <thead>
+            <tr><th class="rec-corner"></th>${headerCells}</tr>
+          </thead>
+          <tbody>
+            <tr><th class="rec-row-label">美咲</th>${oppCells}</tr>
+            <tr><th class="rec-row-label">あなた</th>${myCells}</tr>
+          </tbody>
+        </table>
+      `;
     }
 
     /* 推薦パネル見出し / 提案ボタン / 次へボタンを試行開始時の状態に戻す */

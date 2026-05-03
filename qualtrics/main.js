@@ -527,6 +527,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
       positionsFull: [[0, 0, 0]],
       hasProposed: false,
       agentExpression: 'N',
+      goodnessRating: null,         // 提案後の 7段階評定 (1〜7, 未回答は null)
       roundStartTime: performance.now(),
       proposedAt: null,
       nextClickedAt: null
@@ -542,19 +543,32 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
     if (live2dReady) setAgentExpression('N');
 
-    /* 推薦リスト */
-    var recList = $sel('.recommendation-list', screenTrial);
-    if (recList) {
-      recList.innerHTML = trialState.recommendation.map(function (op, i) {
-        var my = PARAMS.X_total - op;
-        return '<li>' +
-          '<img src="' + ITEM_IMAGES[i] + '" class="rec-item-img" alt="item' + (i+1) + '">' +
-          '<span class="rec-numbers">' +
-            '<span class="rec-label">美咲</span><span class="rec-big">' + op + '</span>' +
-            '<span class="rec-label">あなた</span><span class="rec-big">' + my + '</span>' +
-          '</span>' +
-        '</li>';
+    /* 推薦配分を 2 段の表として描画
+     *   [    ] [item1 img] [item2 img] [item3 img]
+     *   [美咲]    op1         op2         op3
+     *   [あなた]  my1         my2         my3
+     */
+    var recTableContainer = $sel('.recommendation-table-container', screenTrial);
+    if (recTableContainer) {
+      var headerCells = trialState.recommendation.map(function (_, i) {
+        return '<th><img src="' + ITEM_IMAGES[i] + '" class="rec-item-img" alt="item' + (i+1) + '"></th>';
       }).join('');
+      var oppCells = trialState.recommendation.map(function (op) {
+        return '<td><span class="rec-big">' + op + '</span></td>';
+      }).join('');
+      var myCells = trialState.recommendation.map(function (op) {
+        return '<td><span class="rec-big">' + (PARAMS.X_total - op) + '</span></td>';
+      }).join('');
+      recTableContainer.innerHTML =
+        '<table class="rec-table">' +
+          '<thead>' +
+            '<tr><th class="rec-corner"></th>' + headerCells + '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            '<tr><th class="rec-row-label">美咲</th>' + oppCells + '</tr>' +
+            '<tr><th class="rec-row-label">あなた</th>' + myCells + '</tr>' +
+          '</tbody>' +
+        '</table>';
     }
     var recTitle = $sel('.rec-title', screenTrial);
     if (recTitle) recTitle.textContent = '試していただきたい配分';
@@ -570,6 +584,12 @@ Qualtrics.SurveyEngine.addOnload(function () {
     }
     if (nextBtn) { nextBtn.style.display = 'none'; nextBtn.disabled = true; }
     if (timerNote) timerNote.textContent = '';
+
+    /* 評定パネルを非表示 + 選択肢クリア */
+    var ratingPanel = $sel('.rating-panel', screenTrial);
+    if (ratingPanel) ratingPanel.style.display = 'none';
+    var ratingInputs = screenTrial.querySelectorAll('input[name="goodness-rating"]');
+    for (var ri = 0; ri < ratingInputs.length; ri++) ratingInputs[ri].checked = false;
 
     /* テーブル */
     var tableBox = $sel('.table-container', screenTrial);
@@ -646,6 +666,40 @@ Qualtrics.SurveyEngine.addOnload(function () {
     if (proposeBtn) proposeBtn.style.display = 'none';
     var nextBtn = $sel('.next-btn', screenTrial);
     var timerNote = $sel('.timer-note', screenTrial);
+
+    /* 評定パネルを表示し、ラジオの change を監視。
+     * 「次へ」は (5秒タイマー終了) かつ (評定選択済み) の AND で活性化。
+     */
+    var ratingPanel = $sel('.rating-panel', screenTrial);
+    if (ratingPanel) ratingPanel.style.display = '';
+
+    var timerDone = false;
+    var ratingChosen = false;
+    function updateNextBtn() {
+      if (!nextBtn) return;
+      nextBtn.disabled = !(timerDone && ratingChosen);
+      if (timerNote) {
+        if (!timerDone) return;
+        if (!ratingChosen) {
+          timerNote.textContent = '美咲にとって良い提案だったかを評定してください';
+        } else {
+          timerNote.textContent = '次へ進めます';
+        }
+      }
+    }
+    var ratingInputs = screenTrial.querySelectorAll('input[name="goodness-rating"]');
+    for (var ri = 0; ri < ratingInputs.length; ri++) {
+      (function (rEl) {
+        rEl.addEventListener('change', function () {
+          if (rEl.checked) {
+            ratingChosen = true;
+            if (trialState) trialState.goodnessRating = parseInt(rEl.value, 10);
+            updateNextBtn();
+          }
+        });
+      })(ratingInputs[ri]);
+    }
+
     if (nextBtn) {
       nextBtn.style.display = ''; nextBtn.disabled = true;
       var secs = Math.ceil(PARAMS.minViewDurationMs / 1000);
@@ -655,8 +709,8 @@ Qualtrics.SurveyEngine.addOnload(function () {
         secs--;
         if (secs <= 0) {
           clearInterval(viewTimerHandle); viewTimerHandle = null;
-          nextBtn.disabled = false;
-          if (timerNote) timerNote.textContent = '次へ進めます';
+          timerDone = true;
+          updateNextBtn();
         } else {
           if (timerNote) timerNote.textContent = '表情を確認してください(' + secs + '秒後に次へ進めます)';
         }
@@ -673,6 +727,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
         recommendation: trialState.recommendation.slice(),
         proposal: trialState.sliderValues.slice(),
         expression: trialState.agentExpression,
+        goodness_rating: trialState.goodnessRating,    // 美咲にとっての提案の良さ (1〜7, 未回答は null)
         propose_time_ms: trialState.proposedAt - trialState.roundStartTime,
         view_time_ms: trialState.nextClickedAt - trialState.proposedAt,
         slider_change_count: trialState.sliderChangeCounts.slice(),
@@ -816,6 +871,10 @@ Qualtrics.SurveyEngine.addOnload(function () {
       setED('trial' + i + '_positions_history', JSON.stringify(t.positions_full));
 
       setED('trial' + i + '_match_recommendation', t.match_recommendation);
+
+      /* 7段階評定 (1〜7, 未回答は空文字) */
+      setED('trial' + i + '_goodness_rating', (t.goodness_rating !== null && t.goodness_rating !== undefined) ? t.goodness_rating : '');
+
       if (!t.match_recommendation) nonComplianceCount++;
     });
     setED('noncompliance_rate', trialStates.length ? nonComplianceCount / trialStates.length : 0);

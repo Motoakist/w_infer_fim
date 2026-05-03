@@ -65,13 +65,19 @@
     font-size: 18px; font-weight: 600; color: #374151;
   }
 
-  /* ---- エージェント ---- */
+  /* ---- エージェント (agent-name は agent-stage 内にオーバーレイ) ---- */
   #neurips-app .agent-panel {
     background: #f9fafb; border-radius: 12px; padding: 16px;
     text-align: center; border: 1px solid #e5e7eb; position: relative;
   }
   #neurips-app .agent-name {
-    font-size: 20px; font-weight: 700; margin-bottom: 8px;
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    z-index: 5; font-size: 20px; font-weight: 700; color: #1a1a1a;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 4px 16px; border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    pointer-events: none; white-space: nowrap;
   }
   #neurips-app .agent-stage {
     position: relative; width: 100%; max-width: 360px; height: 360px; margin: 0 auto;
@@ -81,34 +87,79 @@
     background: transparent; border-radius: 8px; pointer-events: none;
   }
 
-  /* ---- 推薦パネル ---- */
+  /* ---- 推薦パネル (2段の表形式) ---- */
   #neurips-app .recommendation-panel {
-    background: #fffbeb; border-radius: 12px;
-    padding: 16px 24px; border: 1px solid #fcd34d;
+    background: #fffbeb; border-radius: 8px;
+    padding: 8px 16px 10px; border: 1px solid #fcd34d;
+    margin-bottom: 12px; text-align: center;
   }
-  #neurips-app .recommendation-panel h3 { margin-top: 0; color: #92400e; }
-
-  #neurips-app .recommendation-list {
-    list-style: none; padding: 0; margin: 12px 0;
-    display: flex; flex-direction: row; flex-wrap: nowrap;
-    justify-content: center; align-items: center; gap: 32px;
+  #neurips-app .recommendation-panel .rec-title {
+    font-size: 14px; font-weight: 700; color: #92400e;
+    margin-bottom: 4px;
   }
-  #neurips-app .recommendation-list li {
-    display: flex; align-items: center; gap: 12px;
-    padding: 8px 4px; color: #78350f;
+  #neurips-app .recommendation-table-container {
+    display: flex; justify-content: center;
   }
-  #neurips-app .rec-item-img { width: 36px; height: 36px; flex-shrink: 0; }
-  #neurips-app .rec-numbers {
-    display: grid; grid-template-columns: auto auto;
-    column-gap: 10px; row-gap: 2px; align-items: baseline;
-    font-weight: 600; color: #78350f; line-height: 1.1; white-space: nowrap;
+  #neurips-app .rec-table {
+    border-collapse: collapse; margin: 0 auto;
   }
-  #neurips-app .rec-numbers .rec-label {
-    font-size: 14px; color: #92400e; text-align: right; align-self: center;
+  #neurips-app .rec-table th, #neurips-app .rec-table td {
+    padding: 2px 14px; text-align: center; vertical-align: middle;
+  }
+  #neurips-app .rec-table thead th {
+    padding-bottom: 4px; border-bottom: 1px solid #fcd34d;
+  }
+  #neurips-app .rec-table thead th img {
+    display: block; margin: 0 auto;
+  }
+  #neurips-app .rec-table tbody tr + tr td,
+  #neurips-app .rec-table tbody tr + tr .rec-row-label {
+    border-top: 1px dashed #fde68a;
+  }
+  #neurips-app .rec-table .rec-row-label {
+    font-size: 12px; font-weight: 700; color: #92400e;
+    text-align: right; padding-right: 12px; white-space: nowrap;
+  }
+  #neurips-app .rec-table .rec-corner {
+    border: none; background: transparent;
+  }
+  #neurips-app .rec-item-img {
+    width: 36px; height: 36px; display: block;
   }
   #neurips-app .rec-big {
-    font-size: 36px; font-weight: 800; color: #b45309;
-    font-variant-numeric: tabular-nums; text-align: left;
+    font-size: 24px; font-weight: 800; color: #b45309;
+    font-variant-numeric: tabular-nums; line-height: 1;
+  }
+
+  /* ---- 7段階評定パネル (post-propose のみ表示) ---- */
+  #neurips-app .rating-panel {
+    background: #f0f9ff; border-left: 4px solid #0ea5e9;
+    border-radius: 6px; padding: 10px 14px; margin: 12px 0;
+  }
+  #neurips-app .rating-panel .rating-title {
+    font-size: 14px; font-weight: 700; color: #075985; margin-bottom: 8px;
+  }
+  #neurips-app .likert-7 {
+    display: flex; justify-content: space-between; gap: 4px; align-items: stretch;
+  }
+  #neurips-app .likert-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    text-align: center; cursor: pointer;
+    padding: 6px 4px; border-radius: 4px;
+    border: 2px solid transparent;
+    transition: all 0.15s ease;
+    min-height: 64px;
+  }
+  #neurips-app .likert-item:hover { background: #e0f2fe; }
+  #neurips-app .likert-item:has(input:checked) {
+    background: #bae6fd; border-color: #0ea5e9; font-weight: 700;
+  }
+  #neurips-app .likert-item input { margin: 0 0 4px 0; }
+  #neurips-app .likert-item .num { font-size: 14px; font-weight: 600; display: block; }
+  #neurips-app .likert-item .anchor {
+    font-size: 10px; color: #475569; display: block;
+    margin-top: 2px; line-height: 1.2;
   }
 
   /* ---- 試行画面のメインエリア ---- */
@@ -129,14 +180,14 @@
     font-size: 13px; color: #6b7280; text-align: center;
   }
 
-  /* ---- テーブル ---- */
+  /* ---- テーブル (圧縮版) ---- */
   #neurips-app .table-3d {
     position: relative; width: 720px; max-width: 100%;
-    height: 460px; margin: 0;
+    height: 340px; margin: 0;
   }
   #neurips-app .table-3d-svg {
-    position: absolute; top: 50px; left: 0;
-    width: 100%; height: 360px; pointer-events: none; z-index: 1;
+    position: absolute; top: 40px; left: 0;
+    width: 100%; height: 260px; pointer-events: none; z-index: 1;
   }
   #neurips-app .table-3d-svg rect {
     fill: #fafafa; stroke: #000; stroke-width: 2;
@@ -150,35 +201,44 @@
   #neurips-app .table-side-label.self { bottom: 8px; }
 
   #neurips-app .lanes {
-    position: absolute; top: 50px; left: 0;
-    width: 100%; height: 360px; z-index: 2;
+    position: absolute; top: 40px; left: 0;
+    width: 100%; height: 260px; z-index: 2;
   }
   #neurips-app .lane {
-    position: absolute; top: 0; width: 100px; height: 360px;
+    position: absolute; top: 0; width: 100px; height: 260px;
     display: flex; flex-direction: column; align-items: center;
     justify-content: space-between; padding: 6px 0;
   }
+
+  /* アイテムスタック: 2列固定スロット (絶対配置)
+   * 同段の上端が必ず横軸で揃い、個数が増えても既存アイテムの位置はずれない。
+   * opp (奥): item 1,2 が下段(スライダー寄り), item 5 が上段
+   * self (手前): item 1,2 が上段(スライダー寄り), item 5 が下段
+   */
   #neurips-app .opp-stack, #neurips-app .self-stack {
-    position: relative; width: 100%; display: flex;
-    flex-direction: column; align-items: center;
+    position: relative; margin: 0 auto;
   }
-  #neurips-app .opp-stack { height: 80px; justify-content: flex-end; }
-  #neurips-app .self-stack { height: 100px; justify-content: flex-start; }
-  #neurips-app .item-img { display: block; }
-  #neurips-app .opp-item-img {
-    width: 26px; height: 26px; margin-bottom: -14px;
-  }
-  #neurips-app .self-item-img {
-    width: 42px; height: 42px; margin-top: -22px;
-  }
-  #neurips-app .opp-stack .opp-item-img:first-child,
-  #neurips-app .self-stack .self-item-img:first-child {
-    margin-top: 0; margin-bottom: 0;
-  }
+  #neurips-app .opp-stack { width: 52px; height: 50px; }
+  #neurips-app .self-stack { width: 64px; height: 64px; }
+  #neurips-app .item-img { display: block; position: absolute; }
+
+  #neurips-app .opp-item-img { width: 26px; height: 26px; }
+  #neurips-app .opp-item-img:nth-child(1) { left:  0;   bottom:  0; z-index: 5; }
+  #neurips-app .opp-item-img:nth-child(2) { left: 26px; bottom:  0; z-index: 5; }
+  #neurips-app .opp-item-img:nth-child(3) { left:  0;   bottom: 12px; z-index: 4; }
+  #neurips-app .opp-item-img:nth-child(4) { left: 26px; bottom: 12px; z-index: 4; }
+  #neurips-app .opp-item-img:nth-child(5) { left:  0;   bottom: 24px; z-index: 3; }
+
+  #neurips-app .self-item-img { width: 32px; height: 32px; }
+  #neurips-app .self-item-img:nth-child(1) { left:  0;   top:  0; z-index: 3; }
+  #neurips-app .self-item-img:nth-child(2) { left: 32px; top:  0; z-index: 3; }
+  #neurips-app .self-item-img:nth-child(3) { left:  0;   top: 16px; z-index: 4; }
+  #neurips-app .self-item-img:nth-child(4) { left: 32px; top: 16px; z-index: 4; }
+  #neurips-app .self-item-img:nth-child(5) { left:  0;   top: 32px; z-index: 5; }
 
   #neurips-app .lane-slider {
     -webkit-appearance: slider-vertical; writing-mode: vertical-lr;
-    direction: rtl; width: 28px; height: 150px; margin: 8px 0;
+    direction: rtl; width: 28px; height: 120px; margin: 4px 0;
     cursor: pointer; accent-color: #2563eb;
     transition: filter 0.2s ease;
   }
@@ -251,10 +311,12 @@
 ============================================================== -->
 <div id="neurips-app">
 
-  <!-- 共有 agent-panel(JS で各画面に差し込む) -->
+  <!-- 共有 agent-panel(JS で各画面に差し込む)
+   * agent-name は agent-stage 内にオーバーレイ表示する(キャンバス上部の余白を有効活用)
+   -->
   <div id="shared-agent-panel" class="agent-panel" style="display:none;">
-    <div class="agent-name">美咲</div>
     <div class="agent-stage">
+      <div class="agent-name">美咲</div>
       <canvas class="agent-canvas" id="agentCanvas" width="720" height="720"></canvas>
     </div>
   </div>
@@ -286,8 +348,22 @@
       <div class="agent-panel-slot"></div>
 
       <div class="recommendation-panel">
-        <h3 class="rec-title">試していただきたい配分</h3>
-        <ul class="recommendation-list"></ul>
+        <div class="rec-title">試していただきたい配分</div>
+        <div class="recommendation-table-container"></div>
+      </div>
+
+      <!-- 7段階評定パネル(提案後のみ表示。「次へ」は評定選択 + 5秒タイマー両方必須) -->
+      <div class="rating-panel" style="display:none;">
+        <div class="rating-title">この提案は美咲にとって良いと思いますか?</div>
+        <div class="likert-7">
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="1"><span class="num">1</span><span class="anchor">全く良くない</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="2"><span class="num">2</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="3"><span class="num">3</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="4"><span class="num">4</span><span class="anchor">どちらでもない</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="5"><span class="num">5</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="6"><span class="num">6</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="7"><span class="num">7</span><span class="anchor">とても良い</span></label>
+        </div>
       </div>
 
       <div class="trial-main-area">

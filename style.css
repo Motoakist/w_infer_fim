@@ -393,83 +393,82 @@ h1, h2, h3 {
   border-color: #fca5a5;
 }
 
-/* 推薦配分パネル: 見出しと配分リストを横一行にまとめてコンパクト化 */
+/* 推薦配分パネル: 表形式で 2 段(美咲/あなた)に整理 */
 .recommendation-panel {
   background: #fffbeb;
   border-radius: 8px;
-  padding: 8px 16px;
+  padding: 8px 16px 10px;
   border: 1px solid #fcd34d;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
   margin-bottom: 12px;
+  text-align: center;
 }
 
 .recommendation-panel .rec-title {
-  margin: 0;
   font-size: 14px;
   font-weight: 700;
   color: #92400e;
-  white-space: nowrap;
+  margin-bottom: 4px;
 }
 
-.recommendation-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.recommendation-table-container {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 20px;
-  flex: 1;
   justify-content: center;
 }
 
-.recommendation-list li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0;
-  color: #78350f;
+.rec-table {
+  border-collapse: collapse;
+  margin: 0 auto;
 }
 
-/* 論点ラベルなし、アイテム画像 + 数値で表現 */
-.rec-item-img {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
+.rec-table th, .rec-table td {
+  padding: 2px 14px;
+  text-align: center;
+  vertical-align: middle;
 }
 
-/* 美咲 / あなた それぞれを横並びの 1 行で表示(コンパクト) */
-.rec-numbers {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: baseline;
-  gap: 10px;
-  font-weight: 600;
-  color: #78350f;
+.rec-table thead th {
+  padding-bottom: 4px;
+  border-bottom: 1px solid #fcd34d;
+}
+
+.rec-table thead th img {
+  display: block;
+  margin: 0 auto;
+}
+
+.rec-table tbody tr + tr td,
+.rec-table tbody tr + tr .rec-row-label {
+  border-top: 1px dashed #fde68a;
+}
+
+.rec-table .rec-row-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #92400e;
+  text-align: right;
+  padding-right: 12px;
   white-space: nowrap;
 }
 
-.rec-numbers > span {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
+.rec-table .rec-corner {
+  border: none;
+  background: transparent;
 }
 
-.rec-numbers .rec-label {
-  font-size: 12px;
-  color: #92400e;
+/* 表のヘッダ行に並べるアイテム画像 */
+.rec-item-img {
+  width: 36px;
+  height: 36px;
+  display: block;
 }
 
+/* 表のセル内の大きな数値 */
 .rec-big {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   color: #b45309;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 /* ===== 提案後の 7 段階評定パネル =====
