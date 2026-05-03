@@ -111,6 +111,7 @@
       sliderHistory: [],
       hasProposed: false,
       agentExpression: 'N',
+      goodnessRating: null,         // 提案後の 7段階評定 (1〜7, 未回答は null)
       roundStartTime: performance.now(),
       proposedAt: null,
       nextClickedAt: null,
@@ -149,8 +150,8 @@
         return `<li>
           <img src="stimuli/item${i + 1}.png" class="rec-item-img" alt="item${i + 1}">
           <span class="rec-numbers">
-            <span class="rec-label">美咲</span><span class="rec-big">${op}</span>
-            <span class="rec-label">あなた</span><span class="rec-big">${my}</span>
+            <span><span class="rec-label">美咲</span><span class="rec-big">${op}</span></span>
+            <span><span class="rec-label">あなた</span><span class="rec-big">${my}</span></span>
           </span>
         </li>`;
       }).join('');
@@ -171,6 +172,11 @@
       nextBtn.disabled = true;
     }
     if (timerNote) timerNote.textContent = '';
+
+    /* 評定パネルを非表示 + 選択肢クリア */
+    const ratingPanel = $('.rating-panel', root);
+    if (ratingPanel) ratingPanel.style.display = 'none';
+    $$('input[name="goodness-rating"]', root).forEach(r => { r.checked = false; });
 
     /* テーブルとスライダー
      * 2 試行目以降は HTML 再構築を避けて resetForTrial で値だけ更新する。
@@ -341,6 +347,43 @@
 
     const nextBtn = $('.next-btn', root);
     const timerNote = $('.timer-note', root);
+
+    /* 評定パネルを表示 + 選択肢の change を監視
+     * 「次へ」は (5秒タイマー終了) かつ (評定選択済み) の両方で活性化。
+     */
+    const ratingPanel = $('.rating-panel', root);
+    if (ratingPanel) ratingPanel.style.display = '';
+
+    let timerDone = false;
+    let ratingChosen = false;
+    function updateNextBtn() {
+      if (!nextBtn) return;
+      nextBtn.disabled = !(timerDone && ratingChosen);
+      if (timerNote) {
+        if (!timerDone) {
+          /* タイマー進行中はそのメッセージを優先 */
+          return;
+        }
+        if (!ratingChosen) {
+          timerNote.textContent = '美咲にとって良い提案だったかを評定してください';
+        } else {
+          timerNote.textContent = '次へ進めます';
+        }
+      }
+    }
+
+    /* 評定ラジオの監視 */
+    const ratingInputs = $$('input[name="goodness-rating"]', root);
+    ratingInputs.forEach(r => {
+      r.addEventListener('change', () => {
+        if (r.checked) {
+          ratingChosen = true;
+          if (trialState) trialState.goodnessRating = parseInt(r.value, 10);
+          updateNextBtn();
+        }
+      });
+    });
+
     if (nextBtn) {
       nextBtn.style.display = '';
       nextBtn.disabled = true;
@@ -352,8 +395,8 @@
         if (secs <= 0) {
           clearInterval(viewTimerHandle);
           viewTimerHandle = null;
-          nextBtn.disabled = false;
-          if (timerNote) timerNote.textContent = '次へ進めます';
+          timerDone = true;
+          updateNextBtn();
         } else {
           if (timerNote) timerNote.textContent = `表情を確認してください(${secs}秒後に次へ進めます)`;
         }
@@ -377,6 +420,7 @@
       slider_change_count: trialState.sliderChangeCounts.slice(),
       final_proposal: trialState.sliderValues.slice(),
       agent_expression: trialState.agentExpression,
+      goodness_rating: trialState.goodnessRating,    // 美咲にとっての提案の良さ (1〜7)
       propose_time_ms: trialState.proposedAt - trialState.roundStartTime,
       next_click_time_ms: trialState.nextClickedAt - (trialState.proposedAt ?? trialState.roundStartTime),
     });

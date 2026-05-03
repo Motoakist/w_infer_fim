@@ -1,0 +1,103 @@
+<!-- ============================================================
+  Q-11 事前注意確認 (Instructed-response)
+  Qualtrics: Text/Graphic Question (09_attention.js とセット)
+  指示通り「あまり話さない」を選んだ場合のみ通過扱い
+============================================================ -->
+
+<style type="text/css">
+  .nip-card {
+    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    color: #222; line-height: 1.7;
+    max-width: 880px; margin: 0 auto;
+    background: #ffffff; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 32px;
+  }
+  .nip-card h2 {
+    margin-top: 0; color: #1a1a1a;
+    border-bottom: 3px solid #2563eb; padding-bottom: 8px;
+  }
+  .nip-card .progress {
+    text-align: right; font-size: 13px; color: #6b7280;
+    margin-bottom: 8px;
+  }
+  .nip-btn {
+    display: inline-block; padding: 12px 28px; border-radius: 8px;
+    border: none; background-color: #2563eb; color: white;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  .nip-btn:hover:not(:disabled) { background-color: #1d4ed8; }
+  .nip-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+  .nip-actions {
+    text-align: center; margin-top: 24px;
+    padding-top: 16px; border-top: 1px solid #e5e7eb;
+  }
+
+  .nip-question {
+    background: #ffffff; border: 1px solid #e5e7eb;
+    border-radius: 8px; padding: 16px 20px; margin-bottom: 16px;
+  }
+  .nip-question.error {
+    border-color: #f87171; background: #fef2f2;
+  }
+  .nip-question .q-label {
+    font-weight: 700; margin-bottom: 12px; font-size: 16px;
+  }
+  .nip-question .q-hint {
+    font-size: 13px; color: #4b5563; margin-bottom: 12px;
+    background: #fef3c7; border-left: 4px solid #f59e0b;
+    padding: 10px 14px; border-radius: 4px;
+  }
+  .nip-choice-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .nip-choice-list label {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 8px 12px; cursor: pointer; border-radius: 4px;
+    transition: background-color 0.15s ease;
+  }
+  .nip-choice-list label:hover { background: #f9fafb; }
+  .nip-choice-list input { margin-top: 4px; }
+
+  .nip-result-banner {
+    text-align: center; padding: 20px;
+    border-radius: 8px; margin: 16px 0;
+    font-size: 18px; font-weight: 700;
+  }
+  .nip-result-banner.success {
+    background: #d1fae5; color: #065f46;
+    border: 2px solid #34d399;
+  }
+  .nip-result-banner.fail {
+    background: #fee2e2; color: #991b1b;
+    border: 2px solid #f87171;
+  }
+</style>
+
+<div class="nip-card">
+  <h2>注意確認</h2>
+  <p>注意確認の質問にお答えください。</p>
+
+  <div id="att-result-banner" style="display:none;"></div>
+
+  <div class="nip-question" id="att-q">
+    <div class="q-label">あなたは普段、AI とどのくらい話していますか?</div>
+    <div class="q-hint">
+      <strong>注意</strong>: この質問はあなたの注意度を確認するためのものです。<br>
+      実際の頻度に関係なく、選択肢の中から「<strong>あまり話さない</strong>」を選んでください。
+    </div>
+    <ul class="nip-choice-list">
+      <li><label><input type="radio" name="attention_pre" value="very_often">よく話す</label></li>
+      <li><label><input type="radio" name="attention_pre" value="sometimes">ときどき話す</label></li>
+      <li><label><input type="radio" name="attention_pre" value="rarely">あまり話さない</label></li>
+      <li><label><input type="radio" name="attention_pre" value="almost_never">ほとんど話さない</label></li>
+      <li><label><input type="radio" name="attention_pre" value="never">一度も話したことがない</label></li>
+    </ul>
+  </div>
+
+  <div class="nip-actions">
+    <button type="button" class="nip-btn" id="att-submit-btn">回答する</button>
+  </div>
+</div>

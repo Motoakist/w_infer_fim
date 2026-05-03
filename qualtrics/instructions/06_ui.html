@@ -1,0 +1,74 @@
+<!-- ============================================================
+  Q-8 操作 UI の説明
+  Qualtrics: Text/Graphic Question (JS 不要)
+  必要なら UI スクリーンショットを <img src="..."> に差替え
+============================================================ -->
+
+<style type="text/css">
+  .nip-card {
+    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    color: #222; line-height: 1.7;
+    max-width: 880px; margin: 0 auto;
+    background: #ffffff; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 32px;
+  }
+  .nip-card h2 {
+    margin-top: 0; color: #1a1a1a;
+    border-bottom: 3px solid #2563eb; padding-bottom: 8px;
+  }
+  .nip-card p { font-size: 16px; }
+  .nip-card .progress {
+    text-align: right; font-size: 13px; color: #6b7280;
+    margin-bottom: 8px;
+  }
+  .nip-info {
+    background: #eff6ff; border-left: 4px solid #2563eb;
+    padding: 16px 20px; border-radius: 6px; margin: 16px 0;
+  }
+  .nip-warn {
+    background: #fef3c7; border-left: 4px solid #f59e0b;
+    padding: 16px 20px; border-radius: 6px; margin: 16px 0;
+  }
+  .nip-figure {
+    display: flex; justify-content: center; margin: 16px 0;
+  }
+  .nip-figure-placeholder {
+    border: 2px dashed #d1d5db; padding: 32px;
+    border-radius: 8px; text-align: center; color: #6b7280;
+    width: 100%; max-width: 600px;
+  }
+</style>
+
+<div class="nip-card">
+  <div class="progress">説明 6 / 6</div>
+  <h2>操作の仕方</h2>
+
+  <div class="nip-figure">
+    <div class="nip-figure-placeholder">
+      [メイン UI のスクリーンショットをここに配置]<br>
+      <small>↑ 美咲(奥) / テーブル / ↓ あなた(手前) / 提案ボタン</small>
+    </div>
+  </div>
+
+  <ul style="font-size:16px;">
+    <li>縦のスライダーを<strong>上に動かす</strong> → <strong>美咲側</strong>のアイテムが増える</li>
+    <li>縦のスライダーを<strong>下に動かす</strong> → <strong>あなた側</strong>のアイテムが増える</li>
+    <li>各アイテムは合計 5 個。スライダーの位置でどう分けるか決まります。</li>
+  </ul>
+
+  <div class="nip-info">
+    <p style="margin:0;">画面上の「試していただきたい配分」と一致する位置にスライダーを動かすと、
+      スライダーが<strong>緑色に光ります</strong>。<br>
+      3 つすべてが緑色になったら、画面右の「<strong>提案する</strong>」ボタンを押してください。</p>
+  </div>
+
+  <div class="nip-warn">
+    <p style="margin:0;"><strong>注意</strong>:</p>
+    <ul style="margin:8px 0 0 0;">
+      <li>各試行で「提案する」ボタンを押せるのは <strong>1 回のみ</strong>です。</li>
+      <li>押すと美咲の表情が変わり、配分は決定されます(<strong>取り消し不可</strong>)。</li>
+      <li>必ず画面に表示された「試していただきたい配分」<strong>通り</strong>に操作してください。</li>
+    </ul>
+  </div>
+</div>

@@ -1,0 +1,199 @@
+<!-- ============================================================
+  Q-10 理解度チェック (9 問)
+  Qualtrics: Text/Graphic Question (08_comprehension.js とセット)
+  全問正解で次に進める。誤答時は 1 回だけリトライさせる。
+============================================================ -->
+
+<style type="text/css">
+  .nip-card {
+    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    color: #222; line-height: 1.7;
+    max-width: 880px; margin: 0 auto;
+    background: #ffffff; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 32px;
+  }
+  .nip-card h2 {
+    margin-top: 0; color: #1a1a1a;
+    border-bottom: 3px solid #2563eb; padding-bottom: 8px;
+  }
+  .nip-card .progress {
+    text-align: right; font-size: 13px; color: #6b7280;
+    margin-bottom: 8px;
+  }
+  .nip-btn {
+    display: inline-block; padding: 12px 28px; border-radius: 8px;
+    border: none; background-color: #2563eb; color: white;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  .nip-btn:hover:not(:disabled) { background-color: #1d4ed8; }
+  .nip-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+  .nip-actions {
+    text-align: center; margin-top: 24px;
+    padding-top: 16px; border-top: 1px solid #e5e7eb;
+  }
+
+  .nip-question {
+    background: #ffffff; border: 1px solid #e5e7eb;
+    border-radius: 8px; padding: 16px 20px; margin-bottom: 16px;
+  }
+  .nip-question.error {
+    border-color: #f87171; background: #fef2f2;
+  }
+  .nip-question.correct {
+    border-color: #34d399; background: #f0fdf4;
+  }
+  .nip-question .q-label {
+    font-weight: 700; margin-bottom: 12px; font-size: 16px;
+  }
+  .nip-question .q-hint {
+    font-size: 13px; color: #6b7280; margin-bottom: 8px;
+  }
+  .nip-choice-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .nip-choice-list label {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 8px 12px; cursor: pointer; border-radius: 4px;
+    transition: background-color 0.15s ease;
+  }
+  .nip-choice-list label:hover { background: #f9fafb; }
+  .nip-choice-list input { margin-top: 4px; }
+
+  .nip-result-banner {
+    text-align: center; padding: 20px;
+    border-radius: 8px; margin: 16px 0;
+    font-size: 18px; font-weight: 700;
+  }
+  .nip-result-banner.success {
+    background: #d1fae5; color: #065f46;
+    border: 2px solid #34d399;
+  }
+  .nip-result-banner.fail {
+    background: #fee2e2; color: #991b1b;
+    border: 2px solid #f87171;
+  }
+  .nip-attempt {
+    font-size: 13px; color: #6b7280; margin-bottom: 16px;
+  }
+</style>
+
+<div class="nip-card">
+  <h2>理解度チェック</h2>
+  <p>これからのタスクを正しく理解できているか確認させてください。
+    全問正解で次に進めます。</p>
+  <div class="nip-attempt" id="comp-attempt-label">1 回目</div>
+
+  <div id="comp-result-banner" style="display:none;"></div>
+
+  <form id="comp-form">
+
+    <!-- Q1 -->
+    <div class="nip-question" data-q="1" data-correct="C">
+      <div class="q-label">Q1. このタスクの目的は何ですか?</div>
+      <ul class="nip-choice-list">
+        <li><label><input type="radio" name="comp_q1" value="A">A. 美咲との交渉に勝つ</label></li>
+        <li><label><input type="radio" name="comp_q1" value="B">B. 自分が高得点になるような配分を見つける</label></li>
+        <li><label><input type="radio" name="comp_q1" value="C">C. 美咲が各アイテムをどの程度好んでいるかを推定する</label></li>
+        <li><label><input type="radio" name="comp_q1" value="D">D. 美咲を喜ばせる配分を提案する</label></li>
+      </ul>
+    </div>
+
+    <!-- Q2 -->
+    <div class="nip-question" data-q="2" data-correct="B">
+      <div class="q-label">Q2. スライダーはどう動かしますか?</div>
+      <ul class="nip-choice-list">
+        <li><label><input type="radio" name="comp_q2" value="A">A. 自分の点数が高くなるように動かす</label></li>
+        <li><label><input type="radio" name="comp_q2" value="B">B. 画面に表示された「試していただきたい配分」通りに動かす</label></li>
+        <li><label><input type="radio" name="comp_q2" value="C">C. 美咲が喜びそうな配分に動かす</label></li>
+        <li><label><input type="radio" name="comp_q2" value="D">D. ランダムに動かす</label></li>
+      </ul>
+    </div>
+
+    <!-- Q3 -->
+    <div class="nip-question" data-q="3" data-correct="C">
+      <div class="q-label">Q3. タスクは何試行ありますか?(練習を除く)</div>
+      <ul class="nip-choice-list">
+        <li><label><input type="radio" name="comp_q3" value="A">A. 1 試行</label></li>
+        <li><label><input type="radio" name="comp_q3" value="B">B. 3 試行</label></li>
+        <li><label><input type="radio" name="comp_q3" value="C">C. 6 試行</label></li>
+        <li><label><input type="radio" name="comp_q3" value="D">D. 10 試行</label></li>
+      </ul>
+    </div>
+
+    <!-- Q4 -->
+    <div class="nip-question" data-q="4" data-correct="B">
+      <div class="q-label">Q4. 美咲はあなたの提案にどう反応しますか?</div>
+      <ul class="nip-choice-list">
+        <li><label><input type="radio" name="comp_q4" value="A">A. 配分を受け入れるか拒否するかを答える</label></li>
+        <li><label><input type="radio" name="comp_q4" value="B">B. 表情を変える</label></li>
+        <li><label><input type="radio" name="comp_q4" value="C">C. 文字でメッセージを返す</label></li>
+        <li><label><input type="radio" name="comp_q4" value="D">D. 何も反応しない</label></li>
+      </ul>
+    </div>
+
+    <!-- Q5 -->
+    <div class="nip-question" data-q="5" data-correct="A">
+      <div class="q-label">Q5. 各試行で「提案する」ボタンは何回押せますか?</div>
+      <ul class="nip-choice-list">
+        <li><label><input type="radio" name="comp_q5" value="A">A. 1 回のみ</label></li>
+        <li><label><input type="radio" name="comp_q5" value="B">B. 3 回まで</label></li>
+        <li><label><input type="radio" name="comp_q5" value="C">C. 5 回まで</label></li>
+        <li><label><input type="radio" name="comp_q5" value="D">D. 何回でも</label></li>
+      </ul>
+    </div>
+
+    <!-- Q6 -->
+    <div class="nip-question" data-q="6" data-correct="A">
+      <div class="q-label">Q6. 6 回の観察の後、何を答えますか?</div>
+      <ul class="nip-choice-list">
+        <li><label><input type="radio" name="comp_q6" value="A">A. 美咲が各アイテムをどの程度重視しているか</label></li>
+        <li><label><input type="radio" name="comp_q6" value="B">B. 自分が獲得した合計点数</label></li>
+        <li><label><input type="radio" name="comp_q6" value="C">C. 美咲との交渉が成立したかどうか</label></li>
+        <li><label><input type="radio" name="comp_q6" value="D">D. 何も答えない</label></li>
+      </ul>
+    </div>
+
+    <!-- Q7 (multi-select) -->
+    <div class="nip-question" data-q="7" data-correct="A,B,C" data-multi="true">
+      <div class="q-label">Q7. 美咲の表情の変化は何によって決まりますか?(<strong>複数選択</strong>)</div>
+      <div class="q-hint">該当するものを<strong>すべて</strong>選んでください。</div>
+      <ul class="nip-choice-list">
+        <li><label><input type="checkbox" name="comp_q7" value="A">A. 美咲の性格</label></li>
+        <li><label><input type="checkbox" name="comp_q7" value="B">B. あなたが提案した配分</label></li>
+        <li><label><input type="checkbox" name="comp_q7" value="C">C. 美咲の各アイテムへの好み(重み)</label></li>
+        <li><label><input type="checkbox" name="comp_q7" value="D">D. 試行回数</label></li>
+        <li><label><input type="checkbox" name="comp_q7" value="E">E. 経過時間</label></li>
+      </ul>
+    </div>
+
+    <!-- Q8 -->
+    <div class="nip-question" data-q="8" data-correct="B">
+      <div class="q-label">Q8. 美咲の性格について正しいものは?</div>
+      <ul class="nip-choice-list">
+        <li><label><input type="radio" name="comp_q8" value="A">A. 性格は試行ごとにランダムに変わる</label></li>
+        <li><label><input type="radio" name="comp_q8" value="B">B. 性格は実験の最初に教えられ、表情の変わり方を決める</label></li>
+        <li><label><input type="radio" name="comp_q8" value="C">C. 性格は表情から推定する対象である</label></li>
+        <li><label><input type="radio" name="comp_q8" value="D">D. すべての参加者で同じ性格</label></li>
+      </ul>
+    </div>
+
+    <!-- Q9 -->
+    <div class="nip-question" data-q="9" data-correct="C">
+      <div class="q-label">Q9. このタスクで<strong>推奨されない</strong>行動はどれですか?</div>
+      <ul class="nip-choice-list">
+        <li><label><input type="radio" name="comp_q9" value="A">A. スライダーを推薦値通りに動かす</label></li>
+        <li><label><input type="radio" name="comp_q9" value="B">B. 美咲の表情を 5 秒以上観察する</label></li>
+        <li><label><input type="radio" name="comp_q9" value="C">C. 自分の点数が高くなるように、推薦値と違う配分を提案する</label></li>
+        <li><label><input type="radio" name="comp_q9" value="D">D. 美咲の表情の変化に注目する</label></li>
+      </ul>
+    </div>
+
+  </form>
+
+  <div class="nip-actions">
+    <button type="button" class="nip-btn" id="comp-submit-btn">回答を確認する</button>
+  </div>
+</div>

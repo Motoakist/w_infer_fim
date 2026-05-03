@@ -1,0 +1,72 @@
+<!-- ============================================================
+  Q-4 美咲の紹介
+  Qualtrics: Text/Graphic Question (JS 不要)
+  必要なら美咲のイラスト/Live2D 静止画 URL を <img> に差替え
+============================================================ -->
+
+<style type="text/css">
+  .nip-card {
+    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    color: #222; line-height: 1.7;
+    max-width: 880px; margin: 0 auto;
+    background: #ffffff; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 32px;
+  }
+  .nip-card h2 {
+    margin-top: 0; color: #1a1a1a;
+    border-bottom: 3px solid #2563eb; padding-bottom: 8px;
+  }
+  .nip-card p { font-size: 16px; }
+  .nip-card .progress {
+    text-align: right; font-size: 13px; color: #6b7280;
+    margin-bottom: 8px;
+  }
+  .nip-figure {
+    display: flex; justify-content: center; margin: 16px 0;
+  }
+  .nip-figure-placeholder {
+    border: 2px dashed #d1d5db; padding: 32px;
+    border-radius: 8px; text-align: center; color: #6b7280;
+    width: 100%; max-width: 480px;
+  }
+  .nip-expression-list {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    justify-content: center; margin: 16px 0;
+    list-style: none; padding: 0;
+  }
+  .nip-expression-list li {
+    background: #f9fafb; border: 1px solid #e5e7eb;
+    border-radius: 8px; padding: 12px 16px;
+    text-align: center; min-width: 90px;
+  }
+  .nip-expression-list .emoji { font-size: 28px; display: block; }
+  .nip-expression-list .label { font-size: 12px; color: #4b5563; margin-top: 4px; }
+</style>
+
+<div class="nip-card">
+  <div class="progress">説明 2 / 6</div>
+  <h2>美咲について</h2>
+  <p>美咲は AI エージェントです。あなたとは別の意識を持ち、自分の好みと性格に基づいて表情を変えます。</p>
+
+  <div class="nip-figure">
+    <div class="nip-figure-placeholder">
+      [美咲の静止画/Live2D 画像をここに配置]<br>
+      <small>(Qualtrics Library にアップロードした画像を <code>&lt;img src="..."&gt;</code> として埋め込む)</small>
+    </div>
+  </div>
+
+  <p>美咲は<strong>表情</strong>で気持ちを表現します。表情には以下のようなパターンがあります:</p>
+
+  <ul class="nip-expression-list">
+    <li><span class="emoji">😡</span><span class="label">強い怒り</span></li>
+    <li><span class="emoji">😠</span><span class="label">怒り</span></li>
+    <li><span class="emoji">😒</span><span class="label">やや不快</span></li>
+    <li><span class="emoji">😐</span><span class="label">中立</span></li>
+    <li><span class="emoji">🙂</span><span class="label">やや喜び</span></li>
+    <li><span class="emoji">😊</span><span class="label">喜び</span></li>
+    <li><span class="emoji">😄</span><span class="label">強い喜び</span></li>
+  </ul>
+
+  <p>提案する配分の組み合わせによって、美咲の表情はこれらの間で変化します。</p>
+</div>

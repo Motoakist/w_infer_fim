@@ -9,10 +9,12 @@
 <body>
 <div class="container">
 
-  <!-- 共有 agent-panel: trial / view 画面のスロットに JS で差し込まれる -->
+  <!-- 共有 agent-panel: trial / view 画面のスロットに JS で差し込まれる
+   * agent-name は agent-stage 内にオーバーレイ表示する(キャンバス上部の余白を有効活用)
+   -->
   <div id="shared-agent-panel" class="agent-panel" style="display:none;">
-    <div class="agent-name">美咲</div>
     <div class="agent-stage">
+      <div class="agent-name">美咲</div>
       <canvas class="agent-canvas" id="agentCanvas" width="720" height="720"></canvas>
     </div>
   </div>
@@ -71,8 +73,22 @@
       <div class="agent-panel-slot"></div>
 
       <div class="recommendation-panel">
-        <h3 class="rec-title">試していただきたい配分</h3>
+        <span class="rec-title">試していただきたい配分</span>
         <ul class="recommendation-list"></ul>
+      </div>
+
+      <!-- 7段階評定パネル(提案後のみ表示。「次へ」は評定選択 + 5秒タイマー両方必須) -->
+      <div class="rating-panel" style="display:none;">
+        <div class="rating-title">この提案は美咲にとって良いと思いますか?</div>
+        <div class="likert-7">
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="1"><span class="num">1</span><span class="anchor">全く良くない</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="2"><span class="num">2</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="3"><span class="num">3</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="4"><span class="num">4</span><span class="anchor">どちらでもない</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="5"><span class="num">5</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="6"><span class="num">6</span></label>
+          <label class="likert-item"><input type="radio" name="goodness-rating" value="7"><span class="num">7</span><span class="anchor">とても良い</span></label>
+        </div>
       </div>
 
       <!-- テーブル(左) + アクションボタン(右)を横並び

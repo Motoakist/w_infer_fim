@@ -1,0 +1,210 @@
+<!-- 統合版: 01〜08 を 1 Question に集約。combined.js で CSS と理解度チェック form を注入。
+     アイテム画像 (issue1_img 〜 issue3_img) は combined.js 側で
+     main.js と同じく ${e://Field/...} の直接埋め込みで取得する。 -->
+<input type="hidden" id="ins_emb_cond_theta" value="${e://Field/cond_theta}" />
+
+<div id="ins-app">
+
+  <section id="block-purpose" class="block active">
+    <div class="card">
+      <div class="progress">説明 1 / 7</div>
+      <h2>タスクの目的</h2>
+      <p>このタスクでは、AI エージェント<strong>「美咲」</strong>が、複数のアイテムをあなたとどう分け合いたいかを観察します。</p>
+      <p>美咲には:</p>
+      <ul>
+        <li>各アイテムへの<strong>好み</strong>(最も好き〜最も嫌い)</li>
+        <li>対人的な<strong>性格</strong>(後で説明します)</li>
+      </ul>
+      <p>があります。これらを直接知ることはできませんが、配分に対する<strong>美咲の表情</strong>を見ることで推測できます。</p>
+      <div class="info-box">
+        <p style="margin:0;"><strong>あなたの最終目標</strong>:<br>
+          美咲が各アイテムをどの程度好んでいるかを<strong>推定する</strong>ことです。</p>
+      </div>
+      <div class="actions">
+        <button class="btn ins-next-btn" data-next="block-misaki">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="block-misaki" class="block">
+    <div class="card">
+      <div class="progress">説明 2 / 7</div>
+      <h2>美咲について</h2>
+      <p>美咲は AI エージェントです。自分の好みと性格に基づいて表情を変えます。</p>
+      <div class="ui-figure">
+        <div class="ui-figure-placeholder">
+          <img style="width: 1374px; height: 790px;" src="${e://Field/ai_agent_image}">
+        </div>
+      </div>
+
+      <p>美咲は<strong>表情</strong>で気持ちを表現します。表情には以下のようなパターンがあります:</p>
+
+      <ul class="expression-list">
+        <li><img style="width: 74px;" src="https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/File.php?F=F_rjTkpRFjTbTsvfD"></li>
+        <li><img style="width: 74px;" src="https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/File.php?F=F_FCzrFWFIWZFAjxW"></li>
+        <li><img style="width: 74px;" src="https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/File.php?F=F_ouMvabCIjA7lMVo"></li>
+        <li><img style="width: 74px;" src="https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/File.php?F=F_L2kFJAnywuxHIJz"></li>
+        <li><img style="width: 74px;" src="https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/File.php?F=F_yHKCT72QS4DWurB"></li>
+        <li><img style="width: 74px;" src="https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/File.php?F=F_FLq7YiVlLI8mOoX"></li>
+        <li><img style="width: 74px;" src="https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/File.php?F=F_qwgUh6aau509y29"></li>
+      </ul>
+      <p>提案する配分の組み合わせによって、美咲の表情はこれらの間で変化します。</p>
+      <div class="actions">
+        <button class="btn btn-secondary ins-prev-btn" data-prev="block-purpose">戻る</button>
+        <button class="btn ins-next-btn" data-next="block-items">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="block-items" class="block">
+    <div class="card">
+      <div class="progress">説明 3 / 7</div>
+      <h2>アイテムと配分</h2>
+      <p>このタスクでは <strong>3 種類</strong>のアイテムを、あなたと美咲で分け合います。
+        各アイテムは <strong>5 個</strong>ずつあります(合計 15 個)。</p>
+      <div class="item-row">
+        <div class="item-cell"><img src="${e://Field/issue1_img}" alt="アイテム1" /><div class="item-count">5 個</div></div>
+        <div class="item-cell"><img src="${e://Field/issue2_img}" alt="アイテム2" /><div class="item-count">5 個</div></div>
+        <div class="item-cell"><img src="${e://Field/issue3_img}" alt="アイテム3" /><div class="item-count">5 個</div></div>
+      </div>
+      <p><strong>例</strong>: アイテム 1 を「美咲に 3 個 / あなたに 2 個」のように分けます。アイテム 2、3 も同じように分けます。</p>
+      <p>各アイテムについて、美咲とあなたで好き嫌いが異なります。<br>美咲の好みは:</p>
+      <ul>
+        <li><strong>+2</strong>: 最も好き / <strong>+1</strong>: やや好き</li>
+        <li><strong>0</strong>: 無関心</li>
+        <li><strong>-1</strong>: やや嫌い / <strong>-2</strong>: 最も嫌い</li>
+      </ul>
+      <p>の <strong>5 段階</strong>のいずれかです。</p>
+      <div class="warn-box">
+        <p style="margin:0;"><strong>美咲の好みはあなたには見えません。</strong>これからの観察で推定します。</p>
+      </div>
+      <div class="actions">
+        <button class="btn btn-secondary ins-prev-btn" data-prev="block-misaki">戻る</button>
+        <button class="btn ins-next-btn" data-next="block-expression">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="block-expression" class="block">
+    <div class="card">
+      <div class="progress">説明 4 / 7</div>
+      <h2>表情の決まり方</h2>
+      <p>美咲の表情は、配分のたびに以下の <strong>2 つ</strong>から決まります:</p>
+      <ol style="font-size:16px;">
+        <li>美咲が<strong>どのアイテムをどれだけ好むか</strong>(あなたが推定する対象)</li>
+        <li>美咲の<strong>性格</strong>(競争的/個人主義的/協力的/利他的のいずれか)</li>
+      </ol>
+      <p>性格は実験の最初に画面で教えます。<br>あなたが推定するのは性格ではなく、<strong>各アイテムへの好みの強さ</strong>です。</p>
+      <div class="info-box">
+        <p style="margin:0;"><strong>重要な性質</strong>:</p>
+        <ul style="margin:8px 0 0 0;">
+          <li>同じ性格でも、<strong>配分の中身</strong>によって表情は変わります。</li>
+          <li>同じ配分でも、<strong>性格</strong>が違えば表情は変わります。</li>
+          <li>美咲の表情を観察しているうちに、好みの強さが見えてくるはずです。</li>
+        </ul>
+      </div>
+      <div class="actions">
+        <button class="btn btn-secondary ins-prev-btn" data-prev="block-items">戻る</button>
+        <button class="btn ins-next-btn" data-next="block-flow">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="block-flow" class="block">
+    <div class="card">
+      <div class="progress">説明 5 / 7</div>
+      <h2>タスクの流れ</h2>
+      <ol class="flow-list">
+        <li><strong>練習を 2 回</strong>行います(操作に慣れるため)。<br><small>練習のデータは分析に使いません。</small></li>
+        <li><strong>本試行を 6 回</strong>行います。各試行で:
+          <ol style="margin-top:8px;">
+            <li>画面に「試していただきたい配分」が表示されます</li>
+            <li>スライダーを動かしてその配分通りにします</li>
+            <li>「提案する」ボタンを押すと、美咲の表情が変わります</li>
+            <li><strong>5 秒以上</strong>、表情を観察してください</li>
+            <li>「次へ」を押して次の試行に進みます</li>
+          </ol>
+        </li>
+        <li>美咲の各アイテムへの<strong>好み</strong>を推定します。<br><small>-2(最も嫌い)〜 +2(最も好き)で答えます。</small></li>
+      </ol>
+      <div class="note-box">
+        <p style="margin:0;">タスク全体は約 <strong>10〜15 分</strong>で終わります。</p>
+      </div>
+      <div class="actions">
+        <button class="btn btn-secondary ins-prev-btn" data-prev="block-expression">戻る</button>
+        <button class="btn ins-next-btn" data-next="block-ui">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="block-ui" class="block">
+    <div class="card">
+      <div class="progress">説明 6 / 7</div>
+      <h2>操作の仕方</h2>
+      <div class="ui-figure">
+        <div class="ui-figure-placeholder">
+          <img style="width: 1074px;" src="https://rc1userv5pwvgnvtxbwj.au1.qualtrics.com/ControlPanel/File.php?F=F_kg9GP3qmCO0MnDZ">
+        </div>
+      </div>
+      <ul style="font-size:16px;">
+        <li>縦のスライダーを<strong>上に動かす</strong> → <strong>美咲側</strong>のアイテムが増える</li>
+        <li>縦のスライダーを<strong>下に動かす</strong> → <strong>あなた側</strong>のアイテムが増える</li>
+        <li>各アイテムは合計 5 個。スライダーの位置でどう分けるか決まります。</li>
+      </ul>
+      <div class="info-box">
+        <p style="margin:0;">画面上の「試していただきたい配分」と一致する位置にスライダーを動かすと、スライダーが<strong>緑色に光ります</strong>。<br>3 つすべてが緑色になったら、画面右の「<strong>提案する</strong>」ボタンを押してください。</p>
+      </div>
+      <div class="warn-box">
+        <p style="margin:0;"><strong>注意</strong>:</p>
+        <ul style="margin:8px 0 0 0;">
+          <li>各試行で「提案する」ボタンを押せるのは <strong>1 回のみ</strong>です。</li>
+          <li>押すと美咲の表情が変わり、配分は決定されます(<strong>取り消し不可</strong>)。</li>
+          <li>必ず画面に表示された「試していただきたい配分」<strong>通り</strong>に操作してください。</li>
+        </ul>
+      </div>
+      <div class="actions">
+        <button class="btn btn-secondary ins-prev-btn" data-prev="block-flow">戻る</button>
+        <button class="btn ins-next-btn" data-next="block-theta">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="block-theta" class="block">
+    <div class="card">
+      <div class="progress">説明 7 / 7</div>
+      <h2>美咲の性格</h2>
+      <p>美咲には以下のいずれかの性格があります。あなたが今回観察するのは <span id="ins-theta-label" style="font-weight:700; color:#b45309;">…</span> な美咲です。</p>
+      <table class="theta-table">
+        <thead><tr><th>性格</th><th>特徴</th></tr></thead>
+        <tbody>
+          <tr id="ins-theta-row-competitive"><td><strong>競争的</strong></td><td>自分の利得だけでなく、<strong>相手より多く得る</strong>ことを重視する</td></tr>
+          <tr id="ins-theta-row-individualistic"><td><strong>個人主義的</strong></td><td><strong>自分の利得のみ</strong>を重視し、相手の結果には無関心</td></tr>
+          <tr id="ins-theta-row-cooperative"><td><strong>協力的</strong></td><td>自分と相手の利得を<strong>同等に</strong>重視する(Win-Win)</td></tr>
+          <tr id="ins-theta-row-altruistic"><td><strong>利他的</strong></td><td><strong>相手の利得のみ</strong>を重視し、自分の結果には無関心</td></tr>
+        </tbody>
+      </table>
+      <div class="info-box"><p style="margin:0;" id="ins-theta-instruction">…</p></div>
+      <div class="actions">
+        <button class="btn btn-secondary ins-prev-btn" data-prev="block-ui">戻る</button>
+        <button class="btn ins-next-btn" data-next="block-comprehension">理解度チェックへ</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="block-comprehension" class="block">
+    <div class="card">
+      <h2>理解度チェック</h2>
+      <p>これからのタスクを正しく理解できているか確認させてください。全問正解で次に進めます。</p>
+      <div id="ins-comp-attempt" style="font-size:13px; color:#6b7280;">1 回目</div>
+      <div id="ins-comp-result" style="display:none;"></div>
+      <form id="ins-comp-form">
+        <div id="ins-comp-form-container">読み込み中…</div>
+      </form>
+      <div class="actions">
+        <button class="btn btn-secondary ins-prev-btn" data-prev="block-theta">説明に戻る</button>
+        <button class="btn" id="ins-comp-submit">回答を確認する</button>
+      </div>
+    </div>
+  </section>
+
+</div>

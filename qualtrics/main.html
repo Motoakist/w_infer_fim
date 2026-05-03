@@ -1,0 +1,328 @@
+<!-- ============================================================
+  NeurIPS2026 実験 — Qualtrics Question Body
+  使い方:
+    1. Qualtrics で Text/Graphic Question を作成
+    2. Question Text の HTML View にこの内容をすべて貼り付け
+    3. Question JavaScript に main.js の中身を貼り付け
+  注意:
+    - スタイルはこのファイル内に <style> として埋め込む
+    - 埋め込み変数は <input type="hidden"> 経由で読み込む
+    - 画像 URL は Embedded Data から読み込む
+============================================================ -->
+
+<style type="text/css">
+  /* ---- 全体レイアウト ---- */
+  #neurips-app * { box-sizing: border-box; }
+  #neurips-app {
+    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    color: #222; line-height: 1.6;
+    max-width: 1100px; margin: 0 auto; padding: 16px;
+  }
+  #neurips-app .block { display: none; }
+  #neurips-app .block.active { display: block; }
+
+  #neurips-app .card {
+    background: #ffffff; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 28px; margin: 16px 0;
+  }
+  #neurips-app h2, #neurips-app h3 { margin-top: 0; color: #1a1a1a; }
+
+  /* ---- ボタン ---- */
+  #neurips-app .btn {
+    display: inline-block; padding: 12px 28px; border-radius: 8px;
+    border: none; background-color: #2563eb; color: white;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  #neurips-app .btn:hover:not(:disabled) { background-color: #1d4ed8; }
+  #neurips-app .btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+
+  /* 提案ボタン (画像) */
+  #neurips-app .propose-btn {
+    background: none; border: none; padding: 0; cursor: pointer;
+    font-size: 0; line-height: 0; display: inline-block;
+  }
+  #neurips-app .propose-btn img {
+    width: 160px; height: auto; display: block; border-radius: 12px;
+    transition: box-shadow 0.2s ease, transform 0.1s ease;
+  }
+  #neurips-app .propose-btn:hover:not(:disabled) img {
+    box-shadow: 0 0 14px 3px #F9DB57;
+  }
+  #neurips-app .propose-btn:active:not(:disabled) img {
+    transform: translateY(2px);
+  }
+  #neurips-app .propose-btn:disabled img { opacity: 0.4; filter: grayscale(0.5); }
+
+  /* ---- 試行ヘッダ ---- */
+  #neurips-app .trial-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  #neurips-app .trial-counter {
+    font-size: 18px; font-weight: 600; color: #374151;
+  }
+
+  /* ---- エージェント ---- */
+  #neurips-app .agent-panel {
+    background: #f9fafb; border-radius: 12px; padding: 16px;
+    text-align: center; border: 1px solid #e5e7eb; position: relative;
+  }
+  #neurips-app .agent-name {
+    font-size: 20px; font-weight: 700; margin-bottom: 8px;
+  }
+  #neurips-app .agent-stage {
+    position: relative; width: 100%; max-width: 360px; height: 360px; margin: 0 auto;
+  }
+  #neurips-app .agent-canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    background: transparent; border-radius: 8px; pointer-events: none;
+  }
+
+  /* ---- 推薦パネル ---- */
+  #neurips-app .recommendation-panel {
+    background: #fffbeb; border-radius: 12px;
+    padding: 16px 24px; border: 1px solid #fcd34d;
+  }
+  #neurips-app .recommendation-panel h3 { margin-top: 0; color: #92400e; }
+
+  #neurips-app .recommendation-list {
+    list-style: none; padding: 0; margin: 12px 0;
+    display: flex; flex-direction: row; flex-wrap: nowrap;
+    justify-content: center; align-items: center; gap: 32px;
+  }
+  #neurips-app .recommendation-list li {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 4px; color: #78350f;
+  }
+  #neurips-app .rec-item-img { width: 36px; height: 36px; flex-shrink: 0; }
+  #neurips-app .rec-numbers {
+    display: grid; grid-template-columns: auto auto;
+    column-gap: 10px; row-gap: 2px; align-items: baseline;
+    font-weight: 600; color: #78350f; line-height: 1.1; white-space: nowrap;
+  }
+  #neurips-app .rec-numbers .rec-label {
+    font-size: 14px; color: #92400e; text-align: right; align-self: center;
+  }
+  #neurips-app .rec-big {
+    font-size: 36px; font-weight: 800; color: #b45309;
+    font-variant-numeric: tabular-nums; text-align: left;
+  }
+
+  /* ---- 試行画面のメインエリア ---- */
+  #neurips-app .trial-main-area {
+    display: flex; flex-direction: row; align-items: center;
+    justify-content: center; gap: 24px; margin: 24px 0; flex-wrap: nowrap;
+  }
+  #neurips-app .trial-side-actions {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 12px; flex-shrink: 0; width: 200px;
+  }
+  #neurips-app .action-slot {
+    position: relative; width: 100%; min-height: 100px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #neurips-app .trial-side-actions .timer-note {
+    min-height: 36px; width: 100%; margin-top: 0;
+    font-size: 13px; color: #6b7280; text-align: center;
+  }
+
+  /* ---- テーブル ---- */
+  #neurips-app .table-3d {
+    position: relative; width: 720px; max-width: 100%;
+    height: 460px; margin: 0;
+  }
+  #neurips-app .table-3d-svg {
+    position: absolute; top: 50px; left: 0;
+    width: 100%; height: 360px; pointer-events: none; z-index: 1;
+  }
+  #neurips-app .table-3d-svg rect {
+    fill: #fafafa; stroke: #000; stroke-width: 2;
+  }
+  #neurips-app .table-side-label {
+    position: absolute; font-size: 18px; color: #374151;
+    font-weight: 700; text-align: center; width: 100%;
+    z-index: 3; line-height: 1.2;
+  }
+  #neurips-app .table-side-label.opponent { top: 8px; }
+  #neurips-app .table-side-label.self { bottom: 8px; }
+
+  #neurips-app .lanes {
+    position: absolute; top: 50px; left: 0;
+    width: 100%; height: 360px; z-index: 2;
+  }
+  #neurips-app .lane {
+    position: absolute; top: 0; width: 100px; height: 360px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: space-between; padding: 6px 0;
+  }
+  #neurips-app .opp-stack, #neurips-app .self-stack {
+    position: relative; width: 100%; display: flex;
+    flex-direction: column; align-items: center;
+  }
+  #neurips-app .opp-stack { height: 80px; justify-content: flex-end; }
+  #neurips-app .self-stack { height: 100px; justify-content: flex-start; }
+  #neurips-app .item-img { display: block; }
+  #neurips-app .opp-item-img {
+    width: 26px; height: 26px; margin-bottom: -14px;
+  }
+  #neurips-app .self-item-img {
+    width: 42px; height: 42px; margin-top: -22px;
+  }
+  #neurips-app .opp-stack .opp-item-img:first-child,
+  #neurips-app .self-stack .self-item-img:first-child {
+    margin-top: 0; margin-bottom: 0;
+  }
+
+  #neurips-app .lane-slider {
+    -webkit-appearance: slider-vertical; writing-mode: vertical-lr;
+    direction: rtl; width: 28px; height: 150px; margin: 8px 0;
+    cursor: pointer; accent-color: #2563eb;
+    transition: filter 0.2s ease;
+  }
+  #neurips-app .lane-slider.matched {
+    accent-color: #16a34a;
+    filter: drop-shadow(0 0 6px rgba(22,163,74,0.55));
+  }
+  #neurips-app .lane-remaining {
+    font-size: 11px; font-weight: 600; color: #4b5563;
+    background: rgba(255,255,255,0.92); padding: 2px 8px;
+    border-radius: 999px; border: 1px solid #d1d5db;
+    margin-top: 4px; pointer-events: none; white-space: nowrap;
+  }
+  #neurips-app .lane-remaining.exhausted {
+    color: #991b1b; background: rgba(254,202,202,0.95); border-color: #fca5a5;
+  }
+
+  /* ---- w 推定 ---- */
+  #neurips-app .w-slider-row { margin-bottom: 24px; }
+  #neurips-app .w-slider-scale {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: #6b7280; padding: 0 4px; margin-bottom: 4px;
+  }
+  #neurips-app .w-slider-input { width: 100%; }
+  #neurips-app .w-slider-current {
+    text-align: center; font-size: 18px; font-weight: 700;
+    color: #2563eb; margin-top: 4px;
+  }
+
+  /* ---- 事後質問 ---- */
+  #neurips-app .question { margin-bottom: 24px; }
+  #neurips-app .question label {
+    display: block; font-weight: 600; margin-bottom: 8px;
+  }
+  #neurips-app .question textarea {
+    width: 100%; padding: 10px; border: 1px solid #d1d5db;
+    border-radius: 6px; font-size: 15px; font-family: inherit;
+    min-height: 100px; resize: vertical;
+  }
+  #neurips-app .radio-group {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  #neurips-app .radio-group label {
+    font-weight: normal; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ---- その他 ---- */
+  #neurips-app .actions { text-align: center; margin-top: 16px; }
+  #neurips-app .practice-banner {
+    background: #fef3c7; color: #92400e;
+    padding: 8px 16px; border-radius: 6px; display: inline-block;
+    font-weight: 700; font-size: 14px; margin-bottom: 16px;
+  }
+</style>
+
+<!-- =============================================================
+  Hidden inputs: Embedded Data を JS から読みやすくするためのブリッジ
+  (条件・重み変数のみ。アイテム画像と提案ボタン画像は main.js 内で
+   former_exp.js と同じく ${e://Field/...} 直接埋め込みで取得する)
+============================================================== -->
+<input type="hidden" id="emb_cond_theta"     value="${e://Field/cond_theta}" />
+<input type="hidden" id="emb_cond_tau"       value="${e://Field/cond_tau}" />
+<input type="hidden" id="emb_cond_seq"       value="${e://Field/cond_seq}" />
+<input type="hidden" id="emb_w_self"         value="${e://Field/w_self}" />
+<input type="hidden" id="emb_w_other"        value="${e://Field/w_other}" />
+<input type="hidden" id="emb_extreme_ratio"  value="${e://Field/extreme_ratio}" />
+
+<!-- =============================================================
+  実験本体の DOM
+============================================================== -->
+<div id="neurips-app">
+
+  <!-- 共有 agent-panel(JS で各画面に差し込む) -->
+  <div id="shared-agent-panel" class="agent-panel" style="display:none;">
+    <div class="agent-name">美咲</div>
+    <div class="agent-stage">
+      <canvas class="agent-canvas" id="agentCanvas" width="720" height="720"></canvas>
+    </div>
+  </div>
+
+  <!-- 「実験の概要」と「美咲について」は別の Qualtrics Question で説明する想定。
+       この Question は練習試行から始める。 -->
+
+  <!-- ==== Block: 練習試行イントロ ==== -->
+  <section id="block-practice-intro" class="block active">
+    <div class="card">
+      <span class="practice-banner">練習</span>
+      <h2>まず練習試行を行います</h2>
+      <p>本試行と同じ手順で 2 回練習します。<br>
+        ここで操作に慣れてから本試行に進んでください。</p>
+      <div class="actions">
+        <button id="btn-practice-start" class="btn">練習を始める</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== Block: 試行画面(練習・本試行 共通) ==== -->
+  <section id="screen-trial" class="block">
+    <div class="card">
+      <span class="practice-banner" id="practice-badge" style="display:none;">練習</span>
+      <div class="trial-header">
+        <span class="trial-counter">試行 1 / 6</span>
+      </div>
+
+      <div class="agent-panel-slot"></div>
+
+      <div class="recommendation-panel">
+        <h3 class="rec-title">試していただきたい配分</h3>
+        <ul class="recommendation-list"></ul>
+      </div>
+
+      <div class="trial-main-area">
+        <div class="table-container"></div>
+
+        <div class="trial-side-actions">
+          <div class="action-slot">
+            <button class="propose-btn" type="button" aria-label="提案する">
+              <img src="" alt="提案する" />
+            </button>
+            <button class="btn next-btn" type="button" disabled style="display:none;">次へ</button>
+          </div>
+          <div class="timer-note"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==== Block: 練習完了 ==== -->
+  <section id="block-practice-done" class="block">
+    <div class="card">
+      <h2>練習が終わりました</h2>
+      <p>本試行に進みます。<br>
+        ここからのデータが分析対象になります。</p>
+      <div class="actions">
+        <button id="btn-main-start" class="btn">本試行を始める</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 以下のブロックは別の Qualtrics Question で実装済みのため削除:
+       - block-w (w 推定)
+       - block-post (事後質問)
+       - block-debrief (デブリーフィング)
+       本試行 6 回が終わったら即 Embedded Data を書き出して clickNextButton() で
+       次の Qualtrics Question へ進む。 -->
+
+</div>

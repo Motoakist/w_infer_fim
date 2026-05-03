@@ -1,0 +1,80 @@
+<!-- ============================================================
+  Q-9 美咲の性格教示
+  Qualtrics: Text/Graphic Question (07_theta.js とセット)
+  cond_theta に応じて該当行をハイライト + 教示文を差替え
+============================================================ -->
+
+<style type="text/css">
+  .nip-card {
+    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    color: #222; line-height: 1.7;
+    max-width: 880px; margin: 0 auto;
+    background: #ffffff; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 32px;
+  }
+  .nip-card h2 {
+    margin-top: 0; color: #1a1a1a;
+    border-bottom: 3px solid #2563eb; padding-bottom: 8px;
+  }
+  .nip-card p { font-size: 16px; }
+  .nip-card .progress {
+    text-align: right; font-size: 13px; color: #6b7280;
+    margin-bottom: 8px;
+  }
+  .nip-info {
+    background: #eff6ff; border-left: 4px solid #2563eb;
+    padding: 16px 20px; border-radius: 6px; margin: 16px 0;
+  }
+  .nip-theta-table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+  }
+  .nip-theta-table th, .nip-theta-table td {
+    border: 1px solid #d1d5db; padding: 10px 14px; text-align: left;
+  }
+  .nip-theta-table th { background: #f3f4f6; font-weight: 700; }
+  .nip-theta-table .nip-highlighted {
+    background: #fef3c7; font-weight: 700;
+  }
+</style>
+
+<!-- 埋込変数: cond_theta -->
+<input type="hidden" id="theta_emb_cond_theta" value="${e://Field/cond_theta}" />
+
+<div class="nip-card">
+  <div class="progress">性格教示</div>
+  <h2>美咲の性格</h2>
+  <p>美咲には以下のいずれかの性格があります。あなたが今回観察するのは
+    <span id="theta-label" style="font-weight:700; color:#b45309;">…</span> な美咲です。</p>
+
+  <table class="nip-theta-table">
+    <thead>
+      <tr>
+        <th>性格</th>
+        <th>特徴</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr id="theta-row-competitive">
+        <td><strong>競争的</strong></td>
+        <td>自分の利得だけでなく、<strong>相手より多く得る</strong>ことを重視する</td>
+      </tr>
+      <tr id="theta-row-individualistic">
+        <td><strong>個人主義的</strong></td>
+        <td><strong>自分の利得のみ</strong>を重視し、相手の結果には無関心</td>
+      </tr>
+      <tr id="theta-row-cooperative">
+        <td><strong>協力的</strong></td>
+        <td>自分と相手の利得を<strong>同等に</strong>重視する(Win-Win)</td>
+      </tr>
+      <tr id="theta-row-altruistic">
+        <td><strong>利他的</strong></td>
+        <td><strong>相手の利得のみ</strong>を重視し、自分の結果には無関心</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="nip-info">
+    <p style="margin:0;" id="theta-instruction">…</p>
+  </div>
+</div>

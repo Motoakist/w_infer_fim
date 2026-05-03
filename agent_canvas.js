@@ -50,7 +50,7 @@
          'anger11-1', 'happy11-1',
          'anger11-1', 'happy11-1'],
     J1: ['happy11-5'],
-    J2: ['happy11-9'],
+    J2: ['happy11-8'],
     J3: ['happy11-11'],
   };
 

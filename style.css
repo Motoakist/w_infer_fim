@@ -152,10 +152,23 @@ h1, h2, h3 {
   position: relative;
 }
 
+/* agent-stage 内にオーバーレイ表示。キャンバス上部の余白に重ねる */
 .agent-name {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
   font-size: 20px;
   font-weight: 700;
-  margin-bottom: 8px;
+  color: #1a1a1a;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 4px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 /* Live2D 描画ステージ */
@@ -234,15 +247,15 @@ h1, h2, h3 {
   position: relative;
   width: 720px;
   max-width: 100%;
-  height: 460px;        /* 400 → 460: ラベル用の上下スペースを各 50px 確保 */
+  height: 340px;        /* 460 → 340: アイテムを 2 列化したことで上下スペースを圧縮 */
   margin: 0;            /* trial-main-area の flex 配置で位置決めするので auto は外す */
 }
 
 .table-3d-svg {
   position: absolute;
-  top: 50px; left: 0;   /* 上ラベルとの間に 50px 確保 */
+  top: 40px; left: 0;   /* 上ラベルとの間に 40px 確保 (50→40) */
   width: 100%;
-  height: 360px;
+  height: 260px;        /* 360 → 260 */
   pointer-events: none;
   z-index: 1;
 }
@@ -269,9 +282,9 @@ h1, h2, h3 {
 /* レーン(論点1本分の縦の流れ) */
 .lanes {
   position: absolute;
-  top: 50px; left: 0;    /* SVG と同じく 50px に揃える */
+  top: 40px; left: 0;    /* SVG と同じく 40px に揃える */
   width: 100%;
-  height: 360px;
+  height: 260px;
   z-index: 2;
 }
 
@@ -279,7 +292,7 @@ h1, h2, h3 {
   position: absolute;
   top: 0;
   width: 100px;
-  height: 360px;
+  height: 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -288,46 +301,56 @@ h1, h2, h3 {
   /* 台形演出は廃止 → レーン回転なし */
 }
 
-/* アイテム置き場（奥側=小さく、手前側=大きく） */
+/* アイテム置き場(奥側=小さく、手前側=大きく)
+ * 5 個のアイテムを 2 列(各 3 段) の固定スロットに絶対配置する。
+ * これにより:
+ *  - 同段の 2 アイテムの上端が必ず横軸で揃う
+ *  - 個数が増えても既存アイテムの位置はずれない (新アイテムが空きスロットに入るだけ)
+ *
+ * スロット (opp = 奥, スライダーに近いのは下):
+ *   row 3 (下): item 1, item 2   ← 1 個目から埋まる位置
+ *   row 2 (中): item 3, item 4
+ *   row 1 (上): item 5
+ *
+ * スロット (self = 手前, スライダーに近いのは上):
+ *   row 1 (上): item 1, item 2   ← 1 個目から埋まる位置
+ *   row 2 (中): item 3, item 4
+ *   row 3 (下): item 5
+ */
 .opp-stack, .self-stack {
   position: relative;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  margin: 0 auto;
 }
 
 .opp-stack {
-  height: 80px;
-  justify-content: flex-end;
+  width: 52px;             /* 2 列 × 26 */
+  height: 50px;            /* 3 段 (重ね -14 × 2 = 28 を引いて 78-28=50) */
 }
 
 .self-stack {
-  height: 100px;
-  justify-content: flex-start;
+  width: 64px;             /* 2 列 × 32 */
+  height: 64px;            /* 3 段 (重ね -16 × 2 = 32 を引いて 96-32=64) */
 }
 
 .item-img {
   display: block;
+  position: absolute;       /* 各アイテムを固定スロットに配置 */
 }
 
-.opp-item-img {
-  width: 26px;
-  height: 26px;
-  margin-bottom: -14px;  /* 重ね描き */
-}
+.opp-item-img { width: 26px; height: 26px; }
+.opp-item-img:nth-child(1) { left:  0;   bottom:  0; z-index: 5; }
+.opp-item-img:nth-child(2) { left: 26px; bottom:  0; z-index: 5; }
+.opp-item-img:nth-child(3) { left:  0;   bottom: 12px; z-index: 4; }
+.opp-item-img:nth-child(4) { left: 26px; bottom: 12px; z-index: 4; }
+.opp-item-img:nth-child(5) { left:  0;   bottom: 24px; z-index: 3; }
 
-.self-item-img {
-  width: 42px;
-  height: 42px;
-  margin-top: -22px;
-}
-
-.opp-stack .opp-item-img:first-child,
-.self-stack .self-item-img:first-child {
-  margin-top: 0;
-  margin-bottom: 0;
-}
+.self-item-img { width: 32px; height: 32px; }
+/* self-stack は画面下が「手前」(参加者側) なので、下の段ほど z-index 高(前面) */
+.self-item-img:nth-child(1) { left:  0;   top:  0; z-index: 3; }
+.self-item-img:nth-child(2) { left: 32px; top:  0; z-index: 3; }
+.self-item-img:nth-child(3) { left:  0;   top: 16px; z-index: 4; }
+.self-item-img:nth-child(4) { left: 32px; top: 16px; z-index: 4; }
+.self-item-img:nth-child(5) { left:  0;   top: 32px; z-index: 5; }
 
 /* レーン中央の垂直スライダー */
 .lane-slider {
@@ -335,8 +358,8 @@ h1, h2, h3 {
   writing-mode: vertical-lr;
   direction: rtl;
   width: 28px;
-  height: 150px;
-  margin: 8px 0;
+  height: 120px;        /* 150 → 120 (テーブル全体の圧縮に合わせる) */
+  margin: 4px 0;
   cursor: pointer;
   accent-color: #2563eb;
   transition: filter 0.2s ease;
@@ -370,73 +393,150 @@ h1, h2, h3 {
   border-color: #fca5a5;
 }
 
+/* 推薦配分パネル: 見出しと配分リストを横一行にまとめてコンパクト化 */
 .recommendation-panel {
   background: #fffbeb;
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: 8px;
+  padding: 8px 16px;
   border: 1px solid #fcd34d;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
 }
 
-.recommendation-panel h3 {
-  margin-top: 0;
+.recommendation-panel .rec-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
   color: #92400e;
+  white-space: nowrap;
 }
 
 .recommendation-list {
   list-style: none;
   padding: 0;
-  margin: 12px 0;
+  margin: 0;
   display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: center;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 32px;
+  gap: 20px;
+  flex: 1;
+  justify-content: center;
 }
 
 .recommendation-list li {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 4px;
+  gap: 8px;
+  padding: 4px 0;
   color: #78350f;
 }
 
-/* 論点ラベルなし、アイテム画像 + 大きな数値で表現 */
+/* 論点ラベルなし、アイテム画像 + 数値で表現 */
 .rec-item-img {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
 }
 
-/* Grid で「ラベル列 + 数値列」の 2x2 を作り、ラベルの文字数が違っても
- * 数値列の左端が縦に揃うようにする(美咲 2文字 / あなた 3文字 のズレ対策)
- */
+/* 美咲 / あなた それぞれを横並びの 1 行で表示(コンパクト) */
 .rec-numbers {
-  display: grid;
-  grid-template-columns: auto auto;
-  column-gap: 10px;
-  row-gap: 2px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: baseline;
+  gap: 10px;
   font-weight: 600;
   color: #78350f;
-  line-height: 1.1;
   white-space: nowrap;
 }
 
+.rec-numbers > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
 .rec-numbers .rec-label {
-  font-size: 14px;
+  font-size: 12px;
   color: #92400e;
-  text-align: right;
-  align-self: center;
 }
 
 .rec-big {
-  font-size: 36px;
+  font-size: 22px;
   font-weight: 800;
   color: #b45309;
   font-variant-numeric: tabular-nums;
-  text-align: left;
+}
+
+/* ===== 提案後の 7 段階評定パネル =====
+ * 「提案する」を押した直後に表示。表情観察と並行して評定する。
+ * ラジオが 1 つ選択されるまで「次へ」は無効(5秒タイマーと AND 条件)。
+ */
+.rating-panel {
+  background: #f0f9ff;
+  border-left: 4px solid #0ea5e9;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 12px 0;
+}
+
+.rating-panel .rating-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #075985;
+  margin-bottom: 8px;
+}
+
+.likert-7 {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.likert-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  transition: all 0.15s ease;
+  min-height: 64px;     /* anchor 有無に関わらず高さ揃え */
+}
+
+.likert-item:hover { background: #e0f2fe; }
+.likert-item:has(input:checked) {
+  background: #bae6fd;
+  border-color: #0ea5e9;
+  font-weight: 700;
+}
+
+.likert-item input {
+  margin: 0 0 4px 0;
+}
+
+.likert-item .num {
+  font-size: 14px;
+  font-weight: 600;
+  display: block;
+}
+
+.likert-item .anchor {
+  font-size: 10px;
+  color: #475569;
+  display: block;
+  margin-top: 2px;
+  line-height: 1.2;
+  min-height: 24px;
 }
 
 /* スライダー領域 */

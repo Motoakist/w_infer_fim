@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>美咲 表情ビューア (anger / happy 11-1..11-11)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 16px;
+      font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 480px 1fr;
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .agent-area {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 16px;
+      position: sticky;
+      top: 16px;
+      height: fit-content;
+    }
+
+    .agent-stage {
+      width: 100%;
+      height: 480px;
+      position: relative;
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .agent-stage canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .current-label {
+      margin-top: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      color: #2563eb;
+      font-variant-numeric: tabular-nums;
+      min-height: 28px;
+    }
+
+    .status {
+      font-size: 13px;
+      color: #6b7280;
+      text-align: center;
+      margin-top: 4px;
+      min-height: 20px;
+    }
+
+    .controls {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 24px;
+    }
+
+    .controls h2 {
+      margin-top: 0; padding-bottom: 8px;
+      border-bottom: 3px solid #2563eb;
+    }
+
+    .group {
+      margin-bottom: 24px;
+    }
+    .group h3 {
+      margin: 16px 0 8px 0;
+      font-size: 16px;
+    }
+    .group h3.anger { color: #b91c1c; }
+    .group h3.happy { color: #047857; }
+    .group h3.neutral { color: #6b7280; }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px;
+    }
+
+    .expr-btn {
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #ffffff;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: monospace;
+      transition: all 0.15s ease;
+    }
+    .expr-btn:hover {
+      background: #eff6ff;
+      border-color: #2563eb;
+      transform: translateY(-1px);
+    }
+    .expr-btn.anger:hover { background: #fef2f2; border-color: #dc2626; }
+    .expr-btn.happy:hover { background: #f0fdf4; border-color: #059669; }
+
+    .expr-btn.active {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+      font-weight: 700;
+    }
+    .expr-btn.anger.active { background: #dc2626; border-color: #dc2626; }
+    .expr-btn.happy.active { background: #059669; border-color: #059669; }
+
+    .legend {
+      font-size: 13px; color: #6b7280;
+      margin: 8px 0 16px 0;
+      background: #f3f4f6;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border-left: 3px solid #6b7280;
+    }
+
+    .reset-row {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .reset-row .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .btn-reset { background: #6b7280; color: white; }
+    .btn-reset:hover { background: #4b5563; }
+    .btn-debug { background: #f59e0b; color: white; }
+    .btn-debug:hover { background: #d97706; }
+
+    .log {
+      margin-top: 16px;
+      background: #1f2937;
+      color: #e5e7eb;
+      font-family: "Menlo", monospace;
+      font-size: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 960px) {
+      .container { grid-template-columns: 1fr; }
+      .agent-area { position: static; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ===== Live2D ステージ ===== -->
+  <div class="agent-area">
+    <div class="agent-stage">
+      <canvas id="agentCanvas" width="720" height="720"></canvas>
+    </div>
+    <div class="current-label" id="currentLabel">(まだ表情未設定)</div>
+    <div class="status" id="status">Live2D 読み込み中…</div>
+  </div>
+
+  <!-- ===== 表情ボタン群 ===== -->
+  <div class="controls">
+    <h2>美咲 表情ビューア</h2>
+
+    <div class="legend">
+      anger / happy ともに 11-1 〜 11-11 の <strong>11 種類ずつ</strong>を試せます。
+      モデルに存在しない表情はクリックしても変化しないか、内部でエラーになります(コンソールで確認)。
+    </div>
+
+    <div class="group">
+      <h3 class="anger">anger 11-1 〜 11-11</h3>
+      <div class="btn-row" id="angerRow"></div>
+    </div>
+
+    <div class="group">
+      <h3 class="happy">happy 11-1 〜 11-11</h3>
+      <div class="btn-row" id="happyRow"></div>
+    </div>
+
+    <div class="group">
+      <h3 class="neutral">中立(リセット)</h3>
+      <div class="reset-row">
+        <button class="btn btn-reset" id="btnNeutral">中立に戻す (anger11-1 → happy11-1)</button>
+        <button class="btn btn-debug" id="btnLogModel">モデル情報をログ出力</button>
+      </div>
+    </div>
+
+    <div class="log" id="logBox">起動時のログがここに表示されます…</div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+ * 1. Live2D リソースのロード
+ * ============================================================ */
+const RESOURCES = [
+  'https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js',
+  'https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js',
+  'https://cdn.jsdelivr.net/gh/Motoakist/geminoidF@1dde6a0d3338d14148f61b376227501880b8a5cd/js/indexLibraryRealtime.js'
+];
+const MODEL_PATH = 'https://cdn.jsdelivr.net/gh/Motoakist/geminoidF@caf3917782d785add25041d470a6db22380a039e/GeminoidF_key_reduced/moc/GeminoidF_new/GeminoidF_new.model3.json';
+const POSITION = { boxWidth: 1000, boxHeight: 1000, modelScale: 0.15, modelX: 0, modelY: 500 };
+
+let indexLibrary = null;
+let live2dReady = false;
+
+const $ = (sel) => document.querySelector(sel);
+const logBox = $('#logBox');
+const statusEl = $('#status');
+const currentLabel = $('#currentLabel');
+
+function log(msg) {
+  const ts = new Date().toLocaleTimeString();
+  console.log('[viewer]', msg);
+  if (logBox) {
+    logBox.textContent += `\n[${ts}] ${msg}`;
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+}
+
+function setStatus(msg, color) {
+  if (statusEl) {
+    statusEl.textContent = msg;
+    statusEl.style.color = color || '#6b7280';
+  }
+}
+
+function loadScript(url) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url; s.async = false;
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('failed: ' + url));
+    document.head.appendChild(s);
+  });
+}
+
+async function loadAll() {
+  for (const url of RESOURCES) {
+    log('Loading: ' + url.split('/').pop());
+    try { await loadScript(url); }
+    catch (e) {
+      log('FAILED to load: ' + url);
+      setStatus('Live2D 読み込み失敗: ' + url, '#dc2626');
+      throw e;
+    }
+  }
+  log('All Live2D resources loaded.');
+}
+
+async function init() {
+  try {
+    await loadAll();
+  } catch (e) {
+    return;
+  }
+
+  /* IndexLibrary は #myCanvas を期待するので id を変える */
+  const canvas = document.getElementById('agentCanvas');
+  if (!canvas) { log('agentCanvas not found'); return; }
+  canvas.id = 'myCanvas';
+
+  try {
+    indexLibrary = new window.IndexLibrary(false, '', MODEL_PATH, POSITION);
+    indexLibrary.onload();
+    live2dReady = true;
+    setStatus('Live2D 読み込み完了', '#059669');
+    log('IndexLibrary instantiated. Waiting for model…');
+    /* 初期表情をニュートラルに */
+    setTimeout(() => setExpressionSeq(['anger11-1', 'happy11-1'], 'neutral'), 1500);
+  } catch (e) {
+    log('Live2D init failed: ' + e.message);
+    setStatus('Live2D 初期化失敗', '#dc2626');
+  }
+}
+
+function getModel() {
+  return (indexLibrary && indexLibrary.app && indexLibrary.app.pixiCanvas)
+    ? indexLibrary.app.pixiCanvas.hiyori : null;
+}
+
+/* setExpression を retry 付きで実行 */
+function trySetExpression(name, retries = 12) {
+  if (!indexLibrary) { log('indexLibrary not ready: ' + name); return; }
+  const model = getModel();
+  if (!model || typeof model.setExpression !== 'function') {
+    if (retries > 0) {
+      setTimeout(() => trySetExpression(name, retries - 1), 250);
+    } else {
+      log('model not ready (retry exhausted): ' + name);
+    }
+    return;
+  }
+  try {
+    model.setExpression(name);
+    log('setExpression: ' + name + ' ✓');
+  } catch (e) {
+    log('setExpression error (' + name + '): ' + e.message);
+  }
+}
+
+/* 複数表情を順に当てる(間隔 80ms) */
+function setExpressionSeq(names, label) {
+  names.forEach((n, i) => {
+    if (i === 0) trySetExpression(n);
+    else setTimeout(() => trySetExpression(n), i * 80);
+  });
+  if (currentLabel) currentLabel.textContent = label || names.join(' → ');
+}
+
+/* ============================================================
+ * 2. ボタン生成
+ * ============================================================ */
+
+function makeButtons(row, prefix, kind) {
+  for (let i = 1; i <= 11; i++) {
+    const name = `${prefix}${i}`;
+    const btn = document.createElement('button');
+    btn.className = `expr-btn ${kind}`;
+    btn.textContent = name;
+    btn.dataset.expr = name;
+    btn.addEventListener('click', () => {
+      /* 全ボタンの active クラスを外して当てるボタンを active に */
+      document.querySelectorAll('.expr-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      trySetExpression(name);
+      if (currentLabel) {
+        currentLabel.textContent = name;
+        currentLabel.style.color = (kind === 'anger') ? '#dc2626'
+                                  : (kind === 'happy') ? '#059669'
+                                  : '#2563eb';
+      }
+    });
+    row.appendChild(btn);
+  }
+}
+
+makeButtons(document.getElementById('angerRow'), 'anger11-', 'anger');
+makeButtons(document.getElementById('happyRow'), 'happy11-', 'happy');
+
+/* リセットボタン */
+document.getElementById('btnNeutral').addEventListener('click', () => {
+  document.querySelectorAll('.expr-btn').forEach(b => b.classList.remove('active'));
+  setExpressionSeq(['anger11-1', 'happy11-1'], '中立 (anger11-1 → happy11-1)');
+  if (currentLabel) currentLabel.style.color = '#2563eb';
+});
+
+/* デバッグボタン */
+document.getElementById('btnLogModel').addEventListener('click', () => {
+  const model = getModel();
+  if (!model) { log('model is null'); return; }
+  log('--- Model info ---');
+  log('typeof model.setExpression: ' + typeof model.setExpression);
+  /* 利用可能表情リストの取得を試行 */
+  try {
+    if (model._modelSetting && model._modelSetting._json) {
+      const json = model._modelSetting._json;
+      log('Expressions in model JSON:');
+      const exprs = json.FileReferences && json.FileReferences.Expressions;
+      if (exprs) {
+        exprs.forEach(e => log('  - ' + e.Name + '  (file: ' + e.File + ')'));
+      } else {
+        log('  (no Expressions in FileReferences)');
+      }
+    } else {
+      log('model JSON not accessible');
+    }
+  } catch (e) {
+    log('error reading model: ' + e.message);
+  }
+});
+
+/* キーボードショートカット (1-9 キーで anger / happy 切替) */
+document.addEventListener('keydown', (ev) => {
+  if (ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA') return;
+  /* 数字キーで該当 anger/happy をセット
+   * 1-9: anger11-1 .. anger11-9
+   * Shift + 1-9: happy11-1 .. happy11-9
+   */
+  if (ev.key >= '1' && ev.key <= '9') {
+    const i = ev.key;
+    const prefix = ev.shiftKey ? 'happy11-' : 'anger11-';
+    const name = prefix + i;
+    const btn = document.querySelector(`.expr-btn[data-expr="${name}"]`);
+    if (btn) btn.click();
+  }
+});
+
+/* 起動 */
+init();
+</script>
+
+</body>
+</html>

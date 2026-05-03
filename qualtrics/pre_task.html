@@ -1,0 +1,671 @@
+<!-- ============================================================
+  NeurIPS2026 実験 — タスク事前説明 + 理解度チェック + 注意確認
+  Qualtrics Question Body 用
+  使い方:
+    1. Qualtrics で Text/Graphic Question を 1 つ作成
+    2. Question Text の HTML View にこの中身を貼り付け
+    3. Question JavaScript に pre_task.js の中身を貼り付け
+  注意:
+    - 主実験(main.html + main.js)の "前" の Question として配置すること
+    - cond_theta は Survey Flow で先に Embedded Data に設定しておくこと
+============================================================ -->
+
+<style type="text/css">
+  #pretask-app * { box-sizing: border-box; }
+  #pretask-app {
+    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    color: #222; line-height: 1.7;
+    max-width: 880px; margin: 0 auto; padding: 16px;
+  }
+
+  #pretask-app .block { display: none; }
+  #pretask-app .block.active { display: block; }
+
+  #pretask-app .card {
+    background: #ffffff; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 32px; margin: 16px 0;
+  }
+  #pretask-app h2 {
+    margin-top: 0; color: #1a1a1a;
+    border-bottom: 3px solid #2563eb; padding-bottom: 8px;
+  }
+  #pretask-app h3 { color: #374151; margin-top: 24px; }
+
+  #pretask-app p { font-size: 16px; }
+
+  #pretask-app .btn {
+    display: inline-block; padding: 12px 28px; border-radius: 8px;
+    border: none; background-color: #2563eb; color: white;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  #pretask-app .btn:hover:not(:disabled) { background-color: #1d4ed8; }
+  #pretask-app .btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+  #pretask-app .btn-secondary { background-color: #6b7280; }
+  #pretask-app .btn-secondary:hover:not(:disabled) { background-color: #4b5563; }
+
+  #pretask-app .actions {
+    text-align: center; margin-top: 24px;
+    padding-top: 16px; border-top: 1px solid #e5e7eb;
+  }
+
+  #pretask-app .progress {
+    text-align: right; font-size: 13px; color: #6b7280;
+    margin-bottom: 8px;
+  }
+
+  /* 強調ブロック */
+  #pretask-app .info-box {
+    background: #eff6ff; border-left: 4px solid #2563eb;
+    padding: 16px 20px; border-radius: 6px;
+    margin: 16px 0;
+  }
+  #pretask-app .warn-box {
+    background: #fef3c7; border-left: 4px solid #f59e0b;
+    padding: 16px 20px; border-radius: 6px;
+    margin: 16px 0;
+  }
+  #pretask-app .note-box {
+    background: #f3f4f6; border-left: 4px solid #6b7280;
+    padding: 12px 16px; border-radius: 6px;
+    margin: 16px 0; font-size: 14px;
+  }
+
+  /* 表情リスト */
+  #pretask-app .expression-list {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    justify-content: center; margin: 16px 0;
+    list-style: none; padding: 0;
+  }
+  #pretask-app .expression-list li {
+    background: #f9fafb; border: 1px solid #e5e7eb;
+    border-radius: 8px; padding: 12px 16px;
+    text-align: center; min-width: 90px;
+  }
+  #pretask-app .expression-list .emoji {
+    font-size: 28px; display: block;
+  }
+  #pretask-app .expression-list .label {
+    font-size: 12px; color: #4b5563; margin-top: 4px;
+  }
+
+  /* アイテム画像 */
+  #pretask-app .item-row {
+    display: flex; justify-content: center; gap: 32px;
+    margin: 20px 0;
+  }
+  #pretask-app .item-cell {
+    text-align: center;
+  }
+  #pretask-app .item-cell img {
+    width: 80px; height: 80px; display: block; margin: 0 auto 8px;
+  }
+  #pretask-app .item-cell .item-count {
+    font-size: 14px; color: #6b7280;
+  }
+
+  /* 流れの番号付きリスト */
+  #pretask-app .flow-list {
+    counter-reset: step; list-style: none; padding: 0;
+  }
+  #pretask-app .flow-list li {
+    counter-increment: step;
+    position: relative; padding: 12px 12px 12px 56px;
+    margin-bottom: 8px;
+    background: #f9fafb; border-radius: 8px;
+  }
+  #pretask-app .flow-list li::before {
+    content: counter(step);
+    position: absolute; left: 12px; top: 50%;
+    transform: translateY(-50%);
+    background: #2563eb; color: white;
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+
+  /* 性格表 */
+  #pretask-app .theta-table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+  }
+  #pretask-app .theta-table th,
+  #pretask-app .theta-table td {
+    border: 1px solid #d1d5db; padding: 10px 14px; text-align: left;
+  }
+  #pretask-app .theta-table th {
+    background: #f3f4f6; font-weight: 700;
+  }
+  #pretask-app .theta-table .highlighted {
+    background: #fef3c7; font-weight: 700;
+  }
+
+  /* 質問 */
+  #pretask-app .question {
+    background: #ffffff; border: 1px solid #e5e7eb;
+    border-radius: 8px; padding: 16px 20px; margin-bottom: 16px;
+  }
+  #pretask-app .question.error {
+    border-color: #f87171; background: #fef2f2;
+  }
+  #pretask-app .question.correct {
+    border-color: #34d399; background: #f0fdf4;
+  }
+  #pretask-app .question .q-label {
+    font-weight: 700; margin-bottom: 12px; font-size: 16px;
+  }
+  #pretask-app .question .q-hint {
+    font-size: 13px; color: #6b7280; margin-bottom: 8px;
+  }
+  #pretask-app .choice-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  #pretask-app .choice-list label {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 8px 12px; cursor: pointer; border-radius: 4px;
+    transition: background-color 0.15s ease;
+  }
+  #pretask-app .choice-list label:hover { background: #f9fafb; }
+  #pretask-app .choice-list input { margin-top: 4px; }
+
+  /* 結果バナー */
+  #pretask-app .result-banner {
+    text-align: center; padding: 20px;
+    border-radius: 8px; margin: 16px 0;
+    font-size: 18px; font-weight: 700;
+  }
+  #pretask-app .result-banner.success {
+    background: #d1fae5; color: #065f46;
+    border: 2px solid #34d399;
+  }
+  #pretask-app .result-banner.fail {
+    background: #fee2e2; color: #991b1b;
+    border: 2px solid #f87171;
+  }
+
+  /* UI 図解の代替表示 */
+  #pretask-app .ui-figure {
+    display: flex; justify-content: center; margin: 16px 0;
+  }
+  #pretask-app .ui-figure-placeholder {
+    border: 2px dashed #d1d5db; padding: 32px;
+    border-radius: 8px; text-align: center; color: #6b7280;
+    width: 100%; max-width: 480px;
+  }
+</style>
+
+<!-- 埋め込み変数: 性格条件 / アイテム画像 -->
+<input type="hidden" id="pretask_emb_cond_theta" value="${e://Field/cond_theta}" />
+<input type="hidden" id="pretask_emb_issue1_img" value="${e://Field/issue1_img}" />
+<input type="hidden" id="pretask_emb_issue2_img" value="${e://Field/issue2_img}" />
+<input type="hidden" id="pretask_emb_issue3_img" value="${e://Field/issue3_img}" />
+
+<div id="pretask-app">
+
+  <!-- ============================================================
+    Q-3 タスクの目的
+  ============================================================ -->
+  <section id="block-purpose" class="block active">
+    <div class="card">
+      <div class="progress">説明 1 / 6</div>
+      <h2>タスクの目的</h2>
+      <p>このタスクでは、AI エージェント<strong>「美咲」</strong>が、複数のアイテムをあなたとどう分け合いたいかを観察します。</p>
+      <p>美咲には:</p>
+      <ul>
+        <li>各アイテムへの<strong>好み</strong>(最も好き〜最も嫌い)</li>
+        <li>対人的な<strong>性格</strong>(後で説明します)</li>
+      </ul>
+      <p>があります。これらを直接知ることはできませんが、配分に対する<strong>美咲の表情</strong>を見ることで推測できます。</p>
+
+      <div class="info-box">
+        <p style="margin:0;"><strong>あなたの最終目標</strong>:<br>
+          美咲が各アイテムをどの程度好んでいるかを<strong>推定する</strong>ことです。</p>
+      </div>
+
+      <div class="warn-box">
+        <p style="margin:0;">このタスクには「正解の配分」も「勝ち負け」もありません。<br>
+          あなた自身が高得点を得る必要はなく、ただ美咲の反応を観察してください。</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn pretask-next-btn" data-next="block-misaki">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+    Q-4 美咲の紹介
+  ============================================================ -->
+  <section id="block-misaki" class="block">
+    <div class="card">
+      <div class="progress">説明 2 / 6</div>
+      <h2>美咲について</h2>
+      <p>美咲は AI エージェントです。あなたとは別の意識を持ち、自分の好みと性格に基づいて表情を変えます。</p>
+
+      <div class="ui-figure">
+        <div class="ui-figure-placeholder">
+          [美咲の静止画/Live2D 画像をここに配置]<br>
+          <small>(Qualtrics Library にアップロードした画像 URL を指定してください)</small>
+        </div>
+      </div>
+
+      <p>美咲は<strong>表情</strong>で気持ちを表現します。表情には以下のようなパターンがあります:</p>
+
+      <ul class="expression-list">
+        <li><span class="emoji">😡</span><span class="label">強い怒り</span></li>
+        <li><span class="emoji">😠</span><span class="label">怒り</span></li>
+        <li><span class="emoji">😒</span><span class="label">やや不快</span></li>
+        <li><span class="emoji">😐</span><span class="label">中立</span></li>
+        <li><span class="emoji">🙂</span><span class="label">やや喜び</span></li>
+        <li><span class="emoji">😊</span><span class="label">喜び</span></li>
+        <li><span class="emoji">😄</span><span class="label">強い喜び</span></li>
+      </ul>
+
+      <p>提案する配分の組み合わせによって、美咲の表情はこれらの間で変化します。</p>
+
+      <div class="actions">
+        <button class="btn btn-secondary pretask-prev-btn" data-prev="block-purpose">戻る</button>
+        <button class="btn pretask-next-btn" data-next="block-items">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+    Q-5 アイテムと配分の説明
+  ============================================================ -->
+  <section id="block-items" class="block">
+    <div class="card">
+      <div class="progress">説明 3 / 6</div>
+      <h2>アイテムと配分</h2>
+      <p>このタスクでは <strong>3 種類</strong>のアイテムを、あなたと美咲で分け合います。
+        各アイテムは <strong>5 個</strong>ずつあります(合計 15 個)。</p>
+
+      <div class="item-row">
+        <div class="item-cell">
+          <img id="pretask-item1-img" src="" alt="アイテム1" />
+          <div class="item-count">5 個</div>
+        </div>
+        <div class="item-cell">
+          <img id="pretask-item2-img" src="" alt="アイテム2" />
+          <div class="item-count">5 個</div>
+        </div>
+        <div class="item-cell">
+          <img id="pretask-item3-img" src="" alt="アイテム3" />
+          <div class="item-count">5 個</div>
+        </div>
+      </div>
+
+      <p><strong>例</strong>: アイテム 1 を「美咲に 3 個 / あなたに 2 個」のように分けます。
+        アイテム 2、3 も同じように分けます。</p>
+
+      <p>各アイテムについて、美咲とあなたで好き嫌いが異なります。<br>
+        美咲の好みは:</p>
+      <ul>
+        <li><strong>+2</strong>: 最も好き / <strong>+1</strong>: やや好き</li>
+        <li><strong>0</strong>: 無関心</li>
+        <li><strong>-1</strong>: やや嫌い / <strong>-2</strong>: 最も嫌い</li>
+      </ul>
+      <p>の <strong>5 段階</strong>のいずれかです。</p>
+
+      <div class="warn-box">
+        <p style="margin:0;"><strong>美咲の好みはあなたには見えません。</strong> これからの観察で推定します。</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary pretask-prev-btn" data-prev="block-misaki">戻る</button>
+        <button class="btn pretask-next-btn" data-next="block-expression">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+    Q-6 表情と性格の関係
+  ============================================================ -->
+  <section id="block-expression" class="block">
+    <div class="card">
+      <div class="progress">説明 4 / 6</div>
+      <h2>表情の決まり方</h2>
+      <p>美咲の表情は、配分のたびに以下の <strong>2 つ</strong>から決まります:</p>
+
+      <ol style="font-size:16px;">
+        <li>美咲が<strong>どのアイテムをどれだけ好むか</strong>(あなたが推定する対象)</li>
+        <li>美咲の<strong>性格</strong>(競争的/個人主義的/協力的/利他的のいずれか)</li>
+      </ol>
+
+      <p>性格は実験の最初に画面で教えます。<br>
+        あなたが推定するのは性格ではなく、<strong>各アイテムへの好みの強さ</strong>です。</p>
+
+      <div class="info-box">
+        <p style="margin:0;"><strong>重要な性質</strong>:</p>
+        <ul style="margin:8px 0 0 0;">
+          <li>同じ性格でも、<strong>配分の中身</strong>によって表情は変わります。</li>
+          <li>同じ配分でも、<strong>性格</strong>が違えば表情は変わります。</li>
+          <li>美咲の表情を観察しているうちに、好みの強さが見えてくるはずです。</li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary pretask-prev-btn" data-prev="block-items">戻る</button>
+        <button class="btn pretask-next-btn" data-next="block-flow">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+    Q-7 タスクの流れ
+  ============================================================ -->
+  <section id="block-flow" class="block">
+    <div class="card">
+      <div class="progress">説明 5 / 6</div>
+      <h2>タスクの流れ</h2>
+
+      <ol class="flow-list">
+        <li><strong>練習を 2 回</strong>行います(操作に慣れるため)。<br>
+          <small>練習のデータは分析に使いません。</small></li>
+
+        <li><strong>本試行を 6 回</strong>行います。各試行で:
+          <ol style="margin-top:8px;">
+            <li>画面に「試していただきたい配分」が表示されます</li>
+            <li>スライダーを動かしてその配分通りにします</li>
+            <li>「提案する」ボタンを押すと、美咲の表情が変わります</li>
+            <li><strong>5 秒以上</strong>、表情を観察してください</li>
+            <li>「次へ」を押して次の試行に進みます</li>
+          </ol>
+        </li>
+
+        <li>美咲の各アイテムへの<strong>好み</strong>を推定します。<br>
+          <small>-2(最も嫌い)〜 +2(最も好き)で答えます。</small></li>
+      </ol>
+
+      <div class="note-box">
+        <p style="margin:0;">タスク全体は約 <strong>10〜15 分</strong>で終わります。</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary pretask-prev-btn" data-prev="block-expression">戻る</button>
+        <button class="btn pretask-next-btn" data-next="block-ui">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+    Q-8 操作 UI の説明
+  ============================================================ -->
+  <section id="block-ui" class="block">
+    <div class="card">
+      <div class="progress">説明 6 / 6</div>
+      <h2>操作の仕方</h2>
+
+      <div class="ui-figure">
+        <div class="ui-figure-placeholder">
+          [メイン UI のスクリーンショットをここに配置]<br>
+          <small>↑ 美咲(奥) / テーブル / ↓ あなた(手前) / 提案ボタン</small>
+        </div>
+      </div>
+
+      <ul style="font-size:16px;">
+        <li>縦のスライダーを<strong>上に動かす</strong> → <strong>美咲側</strong>のアイテムが増える</li>
+        <li>縦のスライダーを<strong>下に動かす</strong> → <strong>あなた側</strong>のアイテムが増える</li>
+        <li>各アイテムは合計 5 個。スライダーの位置でどう分けるか決まります。</li>
+      </ul>
+
+      <div class="info-box">
+        <p style="margin:0;">画面上の「試していただきたい配分」と一致する位置にスライダーを動かすと、
+          スライダーが<strong>緑色に光ります</strong>。<br>
+          3 つすべてが緑色になったら、画面右の「<strong>提案する</strong>」ボタンを押してください。</p>
+      </div>
+
+      <div class="warn-box">
+        <p style="margin:0;"><strong>注意</strong>:</p>
+        <ul style="margin:8px 0 0 0;">
+          <li>各試行で「提案する」ボタンを押せるのは <strong>1 回のみ</strong>です。</li>
+          <li>押すと美咲の表情が変わり、配分は決定されます(<strong>取り消し不可</strong>)。</li>
+          <li>必ず画面に表示された「試していただきたい配分」<strong>通り</strong>に操作してください。</li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary pretask-prev-btn" data-prev="block-flow">戻る</button>
+        <button class="btn pretask-next-btn" data-next="block-theta">次へ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+    Q-9 美咲の性格教示(θ 条件で出し分け)
+  ============================================================ -->
+  <section id="block-theta" class="block">
+    <div class="card">
+      <div class="progress">性格教示</div>
+      <h2>美咲の性格</h2>
+      <p>美咲には以下のいずれかの性格があります。あなたが今回観察するのは <span id="pretask-theta-label" style="font-weight:700; color:#b45309;">…</span> な美咲です。</p>
+
+      <table class="theta-table">
+        <thead>
+          <tr>
+            <th>性格</th>
+            <th>特徴</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="pretask-theta-row-competitive">
+            <td><strong>競争的</strong></td>
+            <td>自分の利得だけでなく、<strong>相手より多く得る</strong>ことを重視する</td>
+          </tr>
+          <tr id="pretask-theta-row-individualistic">
+            <td><strong>個人主義的</strong></td>
+            <td><strong>自分の利得のみ</strong>を重視し、相手の結果には無関心</td>
+          </tr>
+          <tr id="pretask-theta-row-cooperative">
+            <td><strong>協力的</strong></td>
+            <td>自分と相手の利得を<strong>同等に</strong>重視する(Win-Win)</td>
+          </tr>
+          <tr id="pretask-theta-row-altruistic">
+            <td><strong>利他的</strong></td>
+            <td><strong>相手の利得のみ</strong>を重視し、自分の結果には無関心</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="info-box">
+        <p style="margin:0;" id="pretask-theta-instruction">…</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary pretask-prev-btn" data-prev="block-ui">戻る</button>
+        <button class="btn pretask-next-btn" data-next="block-comprehension">理解度チェックへ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+    Q-10 理解度チェック(9 問)
+  ============================================================ -->
+  <section id="block-comprehension" class="block">
+    <div class="card">
+      <h2>理解度チェック</h2>
+      <p>これからのタスクを正しく理解できているか確認させてください。
+        全問正解で次に進めます。</p>
+      <div id="pretask-comprehension-attempt" style="font-size:13px; color:#6b7280;">1 回目</div>
+
+      <form id="pretask-comp-form">
+
+        <!-- Q1 -->
+        <div class="question" data-q="1" data-correct="C">
+          <div class="q-label">Q1. このタスクの目的は何ですか？</div>
+          <ul class="choice-list">
+            <li><label><input type="radio" name="comp_q1" value="A">A. 美咲との交渉に勝つ</label></li>
+            <li><label><input type="radio" name="comp_q1" value="B">B. 自分が高得点になるような配分を見つける</label></li>
+            <li><label><input type="radio" name="comp_q1" value="C">C. 美咲が各アイテムをどの程度好んでいるかを推定する</label></li>
+            <li><label><input type="radio" name="comp_q1" value="D">D. 美咲を喜ばせる配分を提案する</label></li>
+          </ul>
+        </div>
+
+        <!-- Q2 -->
+        <div class="question" data-q="2" data-correct="B">
+          <div class="q-label">Q2. スライダーはどう動かしますか？</div>
+          <ul class="choice-list">
+            <li><label><input type="radio" name="comp_q2" value="A">A. 自分の点数が高くなるように動かす</label></li>
+            <li><label><input type="radio" name="comp_q2" value="B">B. 画面に表示された「試していただきたい配分」通りに動かす</label></li>
+            <li><label><input type="radio" name="comp_q2" value="C">C. 美咲が喜びそうな配分に動かす</label></li>
+            <li><label><input type="radio" name="comp_q2" value="D">D. ランダムに動かす</label></li>
+          </ul>
+        </div>
+
+        <!-- Q3 -->
+        <div class="question" data-q="3" data-correct="C">
+          <div class="q-label">Q3. タスクは何試行ありますか？(練習を除く)</div>
+          <ul class="choice-list">
+            <li><label><input type="radio" name="comp_q3" value="A">A. 1 試行</label></li>
+            <li><label><input type="radio" name="comp_q3" value="B">B. 3 試行</label></li>
+            <li><label><input type="radio" name="comp_q3" value="C">C. 6 試行</label></li>
+            <li><label><input type="radio" name="comp_q3" value="D">D. 10 試行</label></li>
+          </ul>
+        </div>
+
+        <!-- Q4 -->
+        <div class="question" data-q="4" data-correct="B">
+          <div class="q-label">Q4. 美咲はあなたの提案にどう反応しますか？</div>
+          <ul class="choice-list">
+            <li><label><input type="radio" name="comp_q4" value="A">A. 配分を受け入れるか拒否するかを答える</label></li>
+            <li><label><input type="radio" name="comp_q4" value="B">B. 表情を変える</label></li>
+            <li><label><input type="radio" name="comp_q4" value="C">C. 文字でメッセージを返す</label></li>
+            <li><label><input type="radio" name="comp_q4" value="D">D. 何も反応しない</label></li>
+          </ul>
+        </div>
+
+        <!-- Q5 -->
+        <div class="question" data-q="5" data-correct="A">
+          <div class="q-label">Q5. 各試行で「提案する」ボタンは何回押せますか？</div>
+          <ul class="choice-list">
+            <li><label><input type="radio" name="comp_q5" value="A">A. 1 回のみ</label></li>
+            <li><label><input type="radio" name="comp_q5" value="B">B. 3 回まで</label></li>
+            <li><label><input type="radio" name="comp_q5" value="C">C. 5 回まで</label></li>
+            <li><label><input type="radio" name="comp_q5" value="D">D. 何回でも</label></li>
+          </ul>
+        </div>
+
+        <!-- Q6 -->
+        <div class="question" data-q="6" data-correct="A">
+          <div class="q-label">Q6. 6 回の観察の後、何を答えますか？</div>
+          <ul class="choice-list">
+            <li><label><input type="radio" name="comp_q6" value="A">A. 美咲が各アイテムをどの程度重視しているか</label></li>
+            <li><label><input type="radio" name="comp_q6" value="B">B. 自分が獲得した合計点数</label></li>
+            <li><label><input type="radio" name="comp_q6" value="C">C. 美咲との交渉が成立したかどうか</label></li>
+            <li><label><input type="radio" name="comp_q6" value="D">D. 何も答えない</label></li>
+          </ul>
+        </div>
+
+        <!-- Q7 (multi-select) -->
+        <div class="question" data-q="7" data-correct="A,B,C" data-multi="true">
+          <div class="q-label">Q7. 美咲の表情の変化は何によって決まりますか？(<strong>複数選択</strong>)</div>
+          <div class="q-hint">該当するものを<strong>すべて</strong>選んでください。</div>
+          <ul class="choice-list">
+            <li><label><input type="checkbox" name="comp_q7" value="A">A. 美咲の性格</label></li>
+            <li><label><input type="checkbox" name="comp_q7" value="B">B. あなたが提案した配分</label></li>
+            <li><label><input type="checkbox" name="comp_q7" value="C">C. 美咲の各アイテムへの好み(重み)</label></li>
+            <li><label><input type="checkbox" name="comp_q7" value="D">D. 試行回数</label></li>
+            <li><label><input type="checkbox" name="comp_q7" value="E">E. 経過時間</label></li>
+          </ul>
+        </div>
+
+        <!-- Q8 -->
+        <div class="question" data-q="8" data-correct="B">
+          <div class="q-label">Q8. 美咲の性格について正しいものは？</div>
+          <ul class="choice-list">
+            <li><label><input type="radio" name="comp_q8" value="A">A. 性格は試行ごとにランダムに変わる</label></li>
+            <li><label><input type="radio" name="comp_q8" value="B">B. 性格は実験の最初に教えられ、表情の変わり方を決める</label></li>
+            <li><label><input type="radio" name="comp_q8" value="C">C. 性格は表情から推定する対象である</label></li>
+            <li><label><input type="radio" name="comp_q8" value="D">D. すべての参加者で同じ性格</label></li>
+          </ul>
+        </div>
+
+        <!-- Q9 -->
+        <div class="question" data-q="9" data-correct="C">
+          <div class="q-label">Q9. このタスクで<strong>推奨されない</strong>行動はどれですか？</div>
+          <ul class="choice-list">
+            <li><label><input type="radio" name="comp_q9" value="A">A. スライダーを推薦値通りに動かす</label></li>
+            <li><label><input type="radio" name="comp_q9" value="B">B. 美咲の表情を 5 秒以上観察する</label></li>
+            <li><label><input type="radio" name="comp_q9" value="C">C. 自分の点数が高くなるように、推薦値と違う配分を提案する</label></li>
+            <li><label><input type="radio" name="comp_q9" value="D">D. 美咲の表情の変化に注目する</label></li>
+          </ul>
+        </div>
+
+      </form>
+
+      <div id="pretask-comp-result" style="display:none;"></div>
+
+      <div class="actions">
+        <button class="btn btn-secondary pretask-prev-btn" data-prev="block-theta">戻る</button>
+        <button class="btn" id="pretask-comp-submit">回答を確認する</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+    Q-10b 理解度チェック失敗時のリトライ案内
+  ============================================================ -->
+  <section id="block-comp-retry" class="block">
+    <div class="card">
+      <h2>もう一度確認しましょう</h2>
+      <div class="result-banner fail" id="pretask-retry-summary">
+        正解は <span id="pretask-retry-score">…</span> / 9 問でした。
+      </div>
+      <p>誤答が <strong id="pretask-retry-wrong-count">…</strong> 問ありました。
+        以下の説明をもう一度読んでから、再度理解度チェックに挑戦してください。</p>
+      <ul id="pretask-retry-wrong-list" style="font-size:14px;"></ul>
+
+      <div class="actions">
+        <button class="btn pretask-next-btn" data-next="block-purpose">説明を読み直す</button>
+        <button class="btn btn-secondary" id="pretask-retry-skip">理解度チェックに直接戻る</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+    Q-11 事前注意確認(指示反応項目)
+  ============================================================ -->
+  <section id="block-attention" class="block">
+    <div class="card">
+      <h2>注意確認</h2>
+      <div class="result-banner success">理解度チェックを通過しました</div>
+
+      <p>続いて、注意確認の質問にお答えください。</p>
+
+      <div class="question" id="pretask-attention-q">
+        <div class="q-label">あなたは普段、AI とどのくらい話していますか？</div>
+        <div class="q-hint">
+          <strong>注意</strong>: この質問はあなたの注意度を確認するためのものです。
+          実際の頻度に関係なく、選択肢の中から「<strong>あまり話さない</strong>」を選んでください。
+        </div>
+        <ul class="choice-list">
+          <li><label><input type="radio" name="attention_pre" value="very_often">よく話す</label></li>
+          <li><label><input type="radio" name="attention_pre" value="sometimes">ときどき話す</label></li>
+          <li><label><input type="radio" name="attention_pre" value="rarely">あまり話さない</label></li>
+          <li><label><input type="radio" name="attention_pre" value="almost_never">ほとんど話さない</label></li>
+          <li><label><input type="radio" name="attention_pre" value="never">一度も話したことがない</label></li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="pretask-attention-submit">回答する</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+    完了 → 主実験 Question へ自動遷移
+  ============================================================ -->
+  <section id="block-complete" class="block">
+    <div class="card">
+      <div class="result-banner success">準備が完了しました</div>
+      <p>これからメインタスクに進みます。<br>
+        画面の指示通りにスライダーを操作し、美咲の表情を観察してください。</p>
+      <div class="actions">
+        <button class="btn" id="pretask-complete-next">主実験を始める</button>
+      </div>
+    </div>
+  </section>
+
+</div>
